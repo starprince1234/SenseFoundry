@@ -1,0 +1,35 @@
+[workspace]
+resolver = "2"
+members = [
+    "backend/kernel",
+    "backend/identity",
+    "backend/corpus_ingestion",
+    "backend/source_verification",
+    "backend/dictionary_import",
+    "backend/model_registry",
+    "backend/audit",
+    "backend/job_queue",
+    "backend/text_processing",
+    "backend/card_management",
+    "backend/search",
+    "backend/sense_matching",
+    "backend/sense_discovery",
+    "backend/diachronic_analysis",
+    "backend/definition_drafting",
+    "backend/example_ranking",
+    "backend/api_server",
+]
+
+[workspace.dependencies]
+axum = { version = "0.7", features = ["macros"] }
+tokio = { version = "1", features = ["full"] }
+sqlx = { version = "0.8", features = ["postgres", "runtime-tokio-rustls", "uuid", "chrono", "json"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+uuid = { version = "1", features = ["v4", "serde"] }
+chrono = { version = "0.4", features = ["serde"] }
+anyhow = "1"
+thiserror = "1"
+tracing = "0.1"
+tracing-opentelemetry = "0.24"
+opentelemetry = "0.23"

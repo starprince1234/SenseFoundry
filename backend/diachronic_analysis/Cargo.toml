@@ -1,0 +1,10 @@
+[package]
+name = "diachronic_analysis"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+axum.workspace = true
+chrono.workspace = true
+serde.workspace = true
+uuid.workspace = true

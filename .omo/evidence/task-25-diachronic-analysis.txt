@@ -1,0 +1,5 @@
+Task 25: Diachronic Analysis
+Implemented earliest dated example per sense candidate within the current corpus.
+Grouped corpus examples by decade and exposed GET /diachronic-analysis/{headword}.
+Scope note explicitly rejects claims about earliest use in language history.
+Verification unavailable: cargo and rust-analyzer are not installed in PATH.
