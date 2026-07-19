@@ -1,0 +1,5 @@
+Task 28: Example Ranking
+Implemented score = quality_score*0.4 + diversity*0.3 + recency*0.3.
+Diversity uses character trigram Jaccard overlap against already selected sentences.
+Routes: POST /rank-examples and GET /examples.
+Verification unavailable: cargo and rust-analyzer are not installed in PATH.
