@@ -1,0 +1,5 @@
+Task 35: Android Skeleton, Search, Sense Detail
+Configured Kotlin, Compose, Room, WorkManager, OkHttp, and serialization dependencies.
+SearchScreen reacts to text input through a suspend query callback and displays character plus gloss previews.
+SenseDetailScreen renders the complete definition and examples; MainActivity hosts Compose.
+Verification unavailable: no Gradle wrapper or system Gradle is installed.
