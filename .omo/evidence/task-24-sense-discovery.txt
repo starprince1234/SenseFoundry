@@ -1,0 +1,22 @@
+Task 24 - Sense Discovery
+
+Implemented:
+- backend/sense_discovery crate dependencies and public module exports.
+- POST /cluster-headword orchestration for CLUSTERED corpus-card usage embeddings.
+- Deterministic random seed and cluster_headword job payload enqueueing.
+- POST /propose-candidate with representative selection, common-gloss proposal,
+  evidence count, and transactional sense_candidates insertion.
+- Unit coverage for pgvector parsing, seed stability, and common-gloss selection.
+
+Verification attempted 2026-07-20:
+- lsp_diagnostics backend/sense_discovery/src
+  BLOCKED: rust-analyzer is not installed or available on PATH.
+- cargo fmt --all -- --check
+- cargo check -p sense_discovery
+- cargo test -p sense_discovery
+- cargo clippy -p sense_discovery --all-targets -- -D warnings
+  BLOCKED: cargo/rustup are not installed or available on PATH.
+
+No verification command produced a code failure; the Rust toolchain is unavailable
+in this environment, so compilation, tests, formatting, and LSP cleanliness remain
+unconfirmed.
