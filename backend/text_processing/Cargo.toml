@@ -1,0 +1,20 @@
+[package]
+name = "text_processing"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+kernel = { path = "../kernel" }
+axum = { workspace = true }
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+unicode-normalization = "0.1"
+regex = "1"
+sha2 = "0.10"
+hex = "0.4"
