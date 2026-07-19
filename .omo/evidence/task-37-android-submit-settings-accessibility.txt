@@ -1,0 +1,5 @@
+Task 37: Android Submission, Feedback, Sync Settings, Accessibility
+SubmitScreen POSTs JSON to /submissions and presents progress/success/failure status.
+SettingsScreen displays sync state and last sync time and enqueues unique manual SyncWorker work.
+All interactive controls in tasks 35-37 include semantic contentDescription values.
+Verification unavailable: no Gradle wrapper or system Gradle is installed.
