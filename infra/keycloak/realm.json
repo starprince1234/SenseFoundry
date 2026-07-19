@@ -1,0 +1,45 @@
+{
+  "realm": "sensefoundry",
+  "enabled": true,
+  "clients": [
+    {
+      "clientId": "backend",
+      "enabled": true,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "changeme",
+      "directAccessGrantsEnabled": true,
+      "publicClient": false
+    }
+  ],
+  "roles": {
+    "realm": [
+      {"name": "user"},
+      {"name": "contributor"},
+      {"name": "corpus_admin"},
+      {"name": "editor"},
+      {"name": "linguist"},
+      {"name": "arbiter"},
+      {"name": "model_engineer"},
+      {"name": "data_governance"},
+      {"name": "legal"},
+      {"name": "security_admin"},
+      {"name": "publish_admin"},
+      {"name": "ops"},
+      {"name": "project_lead"}
+    ]
+  },
+  "users": [
+    {
+      "username": "test-editor",
+      "enabled": true,
+      "credentials": [{"type": "password", "value": "changeme", "temporary": false}],
+      "realmRoles": ["editor"]
+    },
+    {
+      "username": "test-admin",
+      "enabled": true,
+      "credentials": [{"type": "password", "value": "changeme", "temporary": false}],
+      "realmRoles": ["project_lead", "publish_admin"]
+    }
+  ]
+}
