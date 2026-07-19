@@ -1,0 +1,5 @@
+Task 32: SvelteKit Skeleton and OIDC
+Configured SvelteKit, Vite, adapter-node, TypeScript, Svelte 5, and openid-client.
+OIDC uses Keycloak discovery plus Authorization Code + PKCE and stores JWT/session role in sessionStorage.
+Layout displays navigation, role, and logout; home page initiates login.
+Verification: npm run check passed with 0 errors and 0 warnings.
