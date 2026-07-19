@@ -1,0 +1,14 @@
+[package]
+name = "publication"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+axum.workspace = true
+chrono.workspace = true
+hex = "0.4"
+serde.workspace = true
+serde_json.workspace = true
+sha2 = "0.10"
+thiserror.workspace = true
+uuid.workspace = true
