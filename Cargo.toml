@@ -17,6 +17,9 @@ members = [
     "backend/diachronic_analysis",
     "backend/definition_drafting",
     "backend/example_ranking",
+    "backend/review",
+    "backend/publication",
+    "backend/sync",
     "backend/api_server",
 ]
 

@@ -1,0 +1,6 @@
+Task 29: Review
+Implemented PENDING -> IN_PROGRESS -> COMPLETED/EXPIRED review state machine.
+Publication requires two approve decisions.
+Disagreement records an assigned arbiter; decisions include approve/reject/split/merge/amend/abstain.
+Routes: POST/GET /review-tasks and POST /review-tasks/{id}/decide.
+Verification unavailable: cargo and rust-analyzer are not installed in PATH.
