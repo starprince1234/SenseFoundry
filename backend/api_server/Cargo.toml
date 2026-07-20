@@ -1,0 +1,28 @@
+[package]
+name = "api_server"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+axum = { workspace = true }
+tokio = { workspace = true }
+kernel = { path = "../kernel" }
+identity = { path = "../identity" }
+corpus_ingestion = { path = "../corpus_ingestion" }
+source_verification = { path = "../source_verification" }
+dictionary_import = { path = "../dictionary_import" }
+model_registry = { path = "../model_registry" }
+audit = { path = "../audit" }
+job_queue = { path = "../job_queue" }
+text_processing = { path = "../text_processing" }
+card_management = { path = "../card_management" }
+search = { path = "../search" }
+sense_matching = { path = "../sense_matching" }
+sense_discovery = { path = "../sense_discovery" }
+diachronic_analysis = { path = "../diachronic_analysis" }
+definition_drafting = { path = "../definition_drafting" }
+example_ranking = { path = "../example_ranking" }
+
+[dev-dependencies]
+serde_json = { workspace = true }
+tower = { version = "0.4", features = ["util"] }

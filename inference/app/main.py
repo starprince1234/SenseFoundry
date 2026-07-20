@@ -5,7 +5,15 @@ from fastapi import FastAPI
 
 from .config import Settings, validate_device
 from .models import ModelRegistry
-from .routers import embed, health, models as models_router
+from .routers import (
+    cluster,
+    embed,
+    health,
+    mlm,
+    models as models_router,
+    rerank,
+    stability,
+)
 
 settings = Settings()
 validate_device(settings.infer_device)
@@ -28,4 +36,8 @@ app.state.settings = settings
 
 app.include_router(health.router)
 app.include_router(embed.router)
+app.include_router(mlm.router)
+app.include_router(rerank.router)
+app.include_router(cluster.router)
+app.include_router(stability.router)
 app.include_router(models_router.router, prefix="/models")

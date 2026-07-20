@@ -1,0 +1,19 @@
+[package]
+name = "dictionary_import"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+axum = { workspace = true }
+chrono = { workspace = true }
+kernel = { path = "../kernel" }
+serde = { workspace = true }
+sqlx = { workspace = true }
+uuid = { workspace = true }
+
+[dev-dependencies]
+tokio = { workspace = true }
+
+[lib]
+name = "dictionary_import"
+path = "src/lib.rs"

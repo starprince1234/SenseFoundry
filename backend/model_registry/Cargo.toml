@@ -1,0 +1,13 @@
+[package]
+name = "model_registry"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+kernel = { path = "../kernel" }
+axum = { workspace = true }
+serde = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+sqlx = { workspace = true }
+anyhow = { workspace = true }

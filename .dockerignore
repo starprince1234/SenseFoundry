@@ -1,0 +1,12 @@
+target
+**/target
+.git
+.github
+.env
+node_modules
+.svelte-kit
+__pycache__
+.pytest_cache
+dist
+venv
+.venv

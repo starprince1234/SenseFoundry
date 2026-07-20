@@ -1,0 +1,497 @@
+openapi: "3.1.0"
+info:
+  title: SenseFoundry Inference API
+  version: "0.1.0"
+  description: Internal inference service for target span pooling, MLM substitution, cross-encoder reranking, HDBSCAN clustering, and stability analysis
+
+servers:
+  - url: http://localhost:8000
+
+components:
+  schemas:
+    InferenceBase:
+      type: object
+      required: [model_version, feature_version, device]
+      properties:
+        model_version:
+          type: string
+          description: Exact model checkpoint version
+        feature_version:
+          type: string
+          description: Feature extraction pipeline version
+        device:
+          type: string
+          enum: [cpu, cuda]
+          description: Device used for inference
+
+    HealthResponse:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [ok, degraded, error]
+        device:
+          type: string
+        models_loaded:
+          type: array
+          items:
+            type: string
+
+    TargetSpan:
+      type: object
+      required: [start_char, end_char, surface]
+      properties:
+        start_char:
+          type: integer
+        end_char:
+          type: integer
+        surface:
+          type: string
+        target_headword:
+          type: string
+
+    EmbedRequest:
+      type: object
+      required: [text, span]
+      properties:
+        text:
+          type: string
+          description: Input sentence text
+        span:
+          $ref: '#/components/schemas/TargetSpan'
+        include_gloss:
+          type: string
+          description: Optional reference sense gloss for h_gloss computation
+        tokenization_fallback:
+          type: boolean
+          default: false
+
+    EmbedResponse:
+      allOf:
+        - $ref: '#/components/schemas/InferenceBase'
+        - type: object
+          required: [h_target, h_sentence, h_window]
+          properties:
+            h_target:
+              type: array
+              items:
+                type: number
+              description: Target span pooled representation
+            h_sentence:
+              type: array
+              items:
+                type: number
+              description: Full sentence representation
+            h_window:
+              type: array
+              items:
+                type: number
+              description: Context window representation
+            h_gloss:
+              type: array
+              items:
+                type: number
+              description: Reference gloss encoding (optional)
+            h_substitute:
+              type: array
+              items:
+                type: number
+              description: MLM substitute distribution representation (optional)
+            embedding_dim:
+              type: integer
+            fallback_used:
+              type: boolean
+
+    MlmSubstituteRequest:
+      type: object
+      required: [text, span]
+      properties:
+        text:
+          type: string
+        span:
+          $ref: '#/components/schemas/TargetSpan'
+        top_k:
+          type: integer
+          default: 20
+
+    MlmSubstituteResponse:
+      allOf:
+        - $ref: '#/components/schemas/InferenceBase'
+        - type: object
+          required: [substitutes]
+          properties:
+            substitutes:
+              type: array
+              items:
+                type: object
+                required: [token, probability]
+                properties:
+                  token:
+                    type: string
+                  probability:
+                    type: number
+                    format: float
+
+    RerankItem:
+      type: object
+      required: [instance_text, sense_gloss]
+      properties:
+        instance_text:
+          type: string
+        sense_gloss:
+          type: string
+        reference_sense_id:
+          type: string
+          format: uuid
+
+    RerankRequest:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/RerankItem'
+          minItems: 1
+
+    RerankResponse:
+      allOf:
+        - $ref: '#/components/schemas/InferenceBase'
+        - type: object
+          required: [scores]
+          properties:
+            scores:
+              type: array
+              items:
+                type: object
+                required: [reference_sense_id, score]
+                properties:
+                  reference_sense_id:
+                    type: string
+                    format: uuid
+                  score:
+                    type: number
+                    format: float
+
+    ClusterRequest:
+      type: object
+      required: [embeddings, method, random_seed]
+      properties:
+        embeddings:
+          type: array
+          items:
+            type: object
+            required: [id, vector]
+            properties:
+              id:
+                type: string
+                format: uuid
+              vector:
+                type: array
+                items:
+                  type: number
+        method:
+          type: string
+          enum: [hdbscan, hierarchical]
+        min_cluster_size:
+          type: integer
+          default: 5
+          minimum: 2
+        min_samples:
+          type: integer
+          default: 3
+          minimum: 1
+        random_seed:
+          type: integer
+          description: Required for reproducibility (DR-005/DR-006)
+
+    ClusterResponse:
+      allOf:
+        - $ref: '#/components/schemas/InferenceBase'
+        - type: object
+          required: [clusters, noise_count, random_seed]
+          properties:
+            clusters:
+              type: array
+              items:
+                type: object
+                required: [cluster_id, members]
+                properties:
+                  cluster_id:
+                    type: integer
+                    description: -1 = noise
+                  members:
+                    type: array
+                    items:
+                      type: object
+                      required: [id, probability]
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                        probability:
+                          type: number
+                          format: float
+            noise_count:
+              type: integer
+            random_seed:
+              type: integer
+
+    StabilityRequest:
+      type: object
+      required: [embeddings, method, random_seed, n_resample]
+      properties:
+        embeddings:
+          type: array
+          items:
+            type: object
+            required: [id, vector]
+            properties:
+              id:
+                type: string
+                format: uuid
+              vector:
+                type: array
+                items:
+                  type: number
+        method:
+          type: string
+          enum: [hdbscan, hierarchical]
+        min_cluster_size:
+          type: integer
+          default: 5
+        min_samples:
+          type: integer
+          default: 3
+        random_seed:
+          type: integer
+        n_resample:
+          type: integer
+          default: 10
+
+    StabilityResponse:
+      allOf:
+        - $ref: '#/components/schemas/InferenceBase'
+        - type: object
+          required: [stability_score, cluster_stabilities, random_seed]
+          properties:
+            stability_score:
+              type: number
+              format: float
+              minimum: 0
+              maximum: 1
+            cluster_stabilities:
+              type: array
+              items:
+                type: object
+                required: [cluster_id, stability]
+                properties:
+                  cluster_id:
+                    type: integer
+                  stability:
+                    type: number
+                    format: float
+            random_seed:
+              type: integer
+
+    ModelInfo:
+      type: object
+      required: [name, version, device, loaded]
+      properties:
+        name:
+          type: string
+        version:
+          type: string
+        device:
+          type: string
+        loaded:
+          type: boolean
+
+    WarmupResponse:
+      type: object
+      required: [status, models_warmed]
+      properties:
+        status:
+          type: string
+          enum: [ok, failed]
+        models_warmed:
+          type: array
+          items:
+            type: string
+        elapsed_ms:
+          type: integer
+
+    Error:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        device:
+          type: string
+
+paths:
+  /health:
+    get:
+      summary: Health check
+      operationId: getHealth
+      responses:
+        '200':
+          description: Service healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+        '503':
+          description: Service unhealthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /embed:
+    post:
+      summary: Target span pooling and embedding
+      operationId: embed
+      description: |
+        Compute target span pooled representation h_target, full sentence h_sentence,
+        and context window h_window. Single char uses weighted average pooling,
+        multi-char uses attention-weighted pooling. On tokenization failure, falls
+        back to character-level window (§26.3).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmbedRequest'
+      responses:
+        '200':
+          description: Embedding vectors
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmbedResponse'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Inference error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /mlm-substitute:
+    post:
+      summary: MLM contextual substitute distribution
+      operationId: mlmSubstitute
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MlmSubstituteRequest'
+      responses:
+        '200':
+          description: Substitute token distribution
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MlmSubstituteResponse'
+
+  /rerank:
+    post:
+      summary: Cross-encoder reranking of usage instance vs sense glosses
+      operationId: rerank
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RerankRequest'
+      responses:
+        '200':
+          description: Reranked scores
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RerankResponse'
+
+  /cluster:
+    post:
+      summary: HDBSCAN or hierarchical clustering
+      operationId: cluster
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClusterRequest'
+      responses:
+        '200':
+          description: Clustering proposals
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterResponse'
+
+  /stability:
+    post:
+      summary: Cluster stability via resampling
+      operationId: stability
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StabilityRequest'
+      responses:
+        '200':
+          description: Stability scores
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StabilityResponse'
+
+  /models/warmup:
+    post:
+      summary: Preload and warm up all models
+      operationId: warmupModels
+      responses:
+        '200':
+          description: Warmup complete
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WarmupResponse'
+        '500':
+          description: Warmup failed — service will not serve requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /models:
+    get:
+      summary: List loaded models with version and device info
+      operationId: listModels
+      responses:
+        '200':
+          description: Model list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  models:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ModelInfo'
+                  device:
+                    type: string

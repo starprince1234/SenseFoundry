@@ -1,0 +1,997 @@
+openapi: "3.1.0"
+info:
+  title: SenseFoundry API
+  version: "0.1.0"
+  description: AI-assisted Chinese dictionary compilation system API
+servers:
+  - url: http://localhost:8080/api/v1
+security:
+  - BearerAuth: []
+tags:
+  - {name: Authentication}
+  - {name: Users}
+  - {name: Submissions}
+  - {name: Documents}
+  - {name: Corpus Cards}
+  - {name: Headwords}
+  - {name: Reference Senses}
+  - {name: Sense Matches}
+  - {name: Clusters}
+  - {name: Sense Candidates}
+  - {name: Definition Drafts}
+  - {name: Examples}
+  - {name: Review Tasks}
+  - {name: Reviews}
+  - {name: Publications}
+  - {name: Editions}
+  - {name: Sync Manifests}
+  - {name: Models}
+  - {name: Prompt Templates}
+  - {name: Audit Logs}
+
+paths:
+  /health:
+    get:
+      operationId: getHealth
+      summary: Check service health
+      security: []
+      responses:
+        "200":
+          description: Service is healthy
+          headers: {ETag: {$ref: "#/components/headers/ETag"}, X-Trace-Id: {$ref: "#/components/headers/XTraceId"}}
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/Health"}
+        default: {$ref: "#/components/responses/Error"}
+  /auth/me:
+    get:
+      tags: [Authentication]
+      operationId: getCurrentUser
+      summary: Get the authenticated Keycloak user
+      responses:
+        "200": {$ref: "#/components/responses/User"}
+        default: {$ref: "#/components/responses/Error"}
+
+  /users:
+    get:
+      tags: [Users]
+      operationId: listUsers
+      parameters: [{$ref: "#/components/parameters/Page"}, {$ref: "#/components/parameters/PageSize"}, {$ref: "#/components/parameters/Cursor"}]
+      responses:
+        "200": {$ref: "#/components/responses/UserList"}
+        default: {$ref: "#/components/responses/Error"}
+    post:
+      tags: [Users]
+      operationId: createUser
+      x-audit: true
+      parameters: [{$ref: "#/components/parameters/IdempotencyKey"}]
+      requestBody: {$ref: "#/components/requestBodies/UserWrite"}
+      responses:
+        "201": {$ref: "#/components/responses/UserCreated"}
+        default: {$ref: "#/components/responses/Error"}
+  /users/{id}:
+    parameters: [{$ref: "#/components/parameters/ResourceId"}]
+    get:
+      tags: [Users]
+      operationId: getUser
+      responses:
+        "200": {$ref: "#/components/responses/User"}
+        default: {$ref: "#/components/responses/Error"}
+    patch:
+      tags: [Users]
+      operationId: updateUser
+      x-audit: true
+      parameters: [{$ref: "#/components/parameters/OptionalIdempotencyKey"}, {$ref: "#/components/parameters/IfMatch"}]
+      requestBody: {$ref: "#/components/requestBodies/UserWrite"}
+      responses:
+        "200": {$ref: "#/components/responses/User"}
+        default: {$ref: "#/components/responses/Error"}
+
+  /submissions:
+    get:
+      tags: [Submissions]
+      operationId: listSubmissions
+      parameters: [{$ref: "#/components/parameters/Page"}, {$ref: "#/components/parameters/PageSize"}, {$ref: "#/components/parameters/Cursor"}]
+      responses:
+        "200": {$ref: "#/components/responses/SubmissionList"}
+        default: {$ref: "#/components/responses/Error"}
+    post:
+      tags: [Submissions]
+      operationId: createSubmission
+      x-audit: true
+      parameters: [{$ref: "#/components/parameters/IdempotencyKey"}]
+      requestBody: {$ref: "#/components/requestBodies/SubmissionWrite"}
+      responses:
+        "201": {$ref: "#/components/responses/SubmissionCreated"}
+        default: {$ref: "#/components/responses/Error"}
+  /submissions/{id}:
+    parameters: [{$ref: "#/components/parameters/ResourceId"}]
+    get:
+      tags: [Submissions]
+      operationId: getSubmission
+      responses:
+        "200": {$ref: "#/components/responses/Submission"}
+        default: {$ref: "#/components/responses/Error"}
+
+  /documents:
+    get:
+      tags: [Documents]
+      operationId: listDocuments
+      parameters: [{$ref: "#/components/parameters/Page"}, {$ref: "#/components/parameters/PageSize"}, {$ref: "#/components/parameters/Cursor"}]
+      responses:
+        "200": {$ref: "#/components/responses/DocumentList"}
+        default: {$ref: "#/components/responses/Error"}
+    post:
+      tags: [Documents]
+      operationId: createDocument
+      x-audit: true
+      parameters: [{$ref: "#/components/parameters/IdempotencyKey"}]
+      requestBody: {$ref: "#/components/requestBodies/DocumentWrite"}
+      responses:
+        "201": {$ref: "#/components/responses/DocumentCreated"}
+        default: {$ref: "#/components/responses/Error"}
+  /documents/{id}:
+    parameters: [{$ref: "#/components/parameters/ResourceId"}]
+    get:
+      tags: [Documents]
+      operationId: getDocument
+      responses:
+        "200": {$ref: "#/components/responses/Document"}
+        default: {$ref: "#/components/responses/Error"}
+
+  /corpus-cards:
+    get:
+      tags: [Corpus Cards]
+      operationId: listCorpusCards
+      parameters: [{$ref: "#/components/parameters/Page"}, {$ref: "#/components/parameters/PageSize"}, {$ref: "#/components/parameters/Cursor"}]
+      responses:
+        "200": {$ref: "#/components/responses/CorpusCardList"}
+        default: {$ref: "#/components/responses/Error"}
+    post:
+      tags: [Corpus Cards]
+      operationId: createCorpusCard
+      x-audit: true
+      parameters: [{$ref: "#/components/parameters/IdempotencyKey"}]
+      requestBody: {$ref: "#/components/requestBodies/CorpusCardWrite"}
+      responses:
+        "201": {$ref: "#/components/responses/CorpusCardCreated"}
+        default: {$ref: "#/components/responses/Error"}
+  /corpus-cards/{id}:
+    parameters: [{$ref: "#/components/parameters/ResourceId"}]
+    get:
+      tags: [Corpus Cards]
+      operationId: getCorpusCard
+      responses:
+        "200": {$ref: "#/components/responses/CorpusCard"}
+        default: {$ref: "#/components/responses/Error"}
+    patch:
+      tags: [Corpus Cards]
+      operationId: updateCorpusCard
+      x-audit: true
+      parameters: [{$ref: "#/components/parameters/OptionalIdempotencyKey"}, {$ref: "#/components/parameters/IfMatch"}]
+      requestBody: {$ref: "#/components/requestBodies/CorpusCardWrite"}
+      responses:
+        "200": {$ref: "#/components/responses/CorpusCard"}
+        default: {$ref: "#/components/responses/Error"}
+
+  /headwords:
+    get:
+      tags: [Headwords]
+      operationId: listHeadwords
+      parameters: [{$ref: "#/components/parameters/Page"}, {$ref: "#/components/parameters/PageSize"}, {$ref: "#/components/parameters/Cursor"}]
+      responses:
+        "200": {$ref: "#/components/responses/HeadwordList"}
+        default: {$ref: "#/components/responses/Error"}
+    post:
+      tags: [Headwords]
+      operationId: createHeadword
+      x-audit: true
+      parameters: [{$ref: "#/components/parameters/IdempotencyKey"}]
+      requestBody: {$ref: "#/components/requestBodies/HeadwordWrite"}
+      responses:
+        "201": {$ref: "#/components/responses/HeadwordCreated"}
+        default: {$ref: "#/components/responses/Error"}
+  /headwords/{id}:
+    parameters: [{$ref: "#/components/parameters/ResourceId"}]
+    get:
+      tags: [Headwords]
+      operationId: getHeadword
+      responses:
+        "200": {$ref: "#/components/responses/Headword"}
+        default: {$ref: "#/components/responses/Error"}
+    patch:
+      tags: [Headwords]
+      operationId: updateHeadword
+      x-audit: true
+      parameters: [{$ref: "#/components/parameters/OptionalIdempotencyKey"}, {$ref: "#/components/parameters/IfMatch"}]
+      requestBody: {$ref: "#/components/requestBodies/HeadwordWrite"}
+      responses:
+        "200": {$ref: "#/components/responses/Headword"}
+        default: {$ref: "#/components/responses/Error"}
+
+  /reference-senses:
+    get:
+      tags: [Reference Senses]
+      operationId: listReferenceSenses
+      parameters: [{$ref: "#/components/parameters/Page"}, {$ref: "#/components/parameters/PageSize"}, {$ref: "#/components/parameters/Cursor"}]
+      responses:
+        "200": {$ref: "#/components/responses/ReferenceSenseList"}
+        default: {$ref: "#/components/responses/Error"}
+    post:
+      tags: [Reference Senses]
+      operationId: createReferenceSense
+      x-audit: true
+      parameters: [{$ref: "#/components/parameters/IdempotencyKey"}]
+      requestBody: {$ref: "#/components/requestBodies/ReferenceSenseWrite"}
+      responses:
+        "201": {$ref: "#/components/responses/ReferenceSenseCreated"}
+        default: {$ref: "#/components/responses/Error"}
+  /reference-senses/{id}:
+    parameters: [{$ref: "#/components/parameters/ResourceId"}]
+    get:
+      tags: [Reference Senses]
+      operationId: getReferenceSense
+      responses:
+        "200": {$ref: "#/components/responses/ReferenceSense"}
+        default: {$ref: "#/components/responses/Error"}
+    patch:
+      tags: [Reference Senses]
+      operationId: updateReferenceSense
+      x-audit: true
+      parameters: [{$ref: "#/components/parameters/OptionalIdempotencyKey"}, {$ref: "#/components/parameters/IfMatch"}]
+      requestBody: {$ref: "#/components/requestBodies/ReferenceSenseWrite"}
+      responses:
+        "200": {$ref: "#/components/responses/ReferenceSense"}
+        default: {$ref: "#/components/responses/Error"}
+
+  /sense-matches:
+    get:
+      tags: [Sense Matches]
+      operationId: listSenseMatches
+      parameters: [{$ref: "#/components/parameters/Page"}, {$ref: "#/components/parameters/PageSize"}, {$ref: "#/components/parameters/Cursor"}]
+      responses:
+        "200": {$ref: "#/components/responses/SenseMatchList"}
+        default: {$ref: "#/components/responses/Error"}
+    post:
+      tags: [Sense Matches]
+      operationId: createSenseMatch
+      x-audit: true
+      parameters: [{$ref: "#/components/parameters/IdempotencyKey"}]
+      requestBody: {$ref: "#/components/requestBodies/SenseMatchWrite"}
+      responses:
+        "201": {$ref: "#/components/responses/SenseMatchCreated"}
+        default: {$ref: "#/components/responses/Error"}
+  /sense-matches/{id}:
+    parameters: [{$ref: "#/components/parameters/ResourceId"}]
+    get:
+      tags: [Sense Matches]
+      operationId: getSenseMatch
+      responses:
+        "200": {$ref: "#/components/responses/SenseMatch"}
+        default: {$ref: "#/components/responses/Error"}
+
+  /clusters:
+    get:
+      tags: [Clusters]
+      operationId: listClusters
+      parameters: [{$ref: "#/components/parameters/Page"}, {$ref: "#/components/parameters/PageSize"}, {$ref: "#/components/parameters/Cursor"}]
+      responses:
+        "200": {$ref: "#/components/responses/ClusterList"}
+        default: {$ref: "#/components/responses/Error"}
+    post:
+      tags: [Clusters]
+      operationId: createCluster
+      x-audit: true
+      parameters: [{$ref: "#/components/parameters/IdempotencyKey"}]
+      requestBody: {$ref: "#/components/requestBodies/ClusterWrite"}
+      responses:
+        "201": {$ref: "#/components/responses/ClusterCreated"}
+        default: {$ref: "#/components/responses/Error"}
+  /clusters/{id}:
+    parameters: [{$ref: "#/components/parameters/ResourceId"}]
+    get:
+      tags: [Clusters]
+      operationId: getCluster
+      responses:
+        "200": {$ref: "#/components/responses/Cluster"}
+        default: {$ref: "#/components/responses/Error"}
+
+  /sense-candidates:
+    get:
+      tags: [Sense Candidates]
+      operationId: listSenseCandidates
+      parameters: [{$ref: "#/components/parameters/Page"}, {$ref: "#/components/parameters/PageSize"}, {$ref: "#/components/parameters/Cursor"}]
+      responses:
+        "200": {$ref: "#/components/responses/SenseCandidateList"}
+        default: {$ref: "#/components/responses/Error"}
+    post:
+      tags: [Sense Candidates]
+      operationId: createSenseCandidate
+      x-audit: true
+      parameters: [{$ref: "#/components/parameters/IdempotencyKey"}]
+      requestBody: {$ref: "#/components/requestBodies/SenseCandidateWrite"}
+      responses:
+        "201": {$ref: "#/components/responses/SenseCandidateCreated"}
+        default: {$ref: "#/components/responses/Error"}
+  /sense-candidates/{id}:
+    parameters: [{$ref: "#/components/parameters/ResourceId"}]
+    get:
+      tags: [Sense Candidates]
+      operationId: getSenseCandidate
+      responses:
+        "200": {$ref: "#/components/responses/SenseCandidate"}
+        default: {$ref: "#/components/responses/Error"}
+    patch:
+      tags: [Sense Candidates]
+      operationId: updateSenseCandidate
+      x-audit: true
+      parameters: [{$ref: "#/components/parameters/OptionalIdempotencyKey"}, {$ref: "#/components/parameters/IfMatch"}]
+      requestBody: {$ref: "#/components/requestBodies/SenseCandidateWrite"}
+      responses:
+        "200": {$ref: "#/components/responses/SenseCandidate"}
+        default: {$ref: "#/components/responses/Error"}
+
+  /definition-drafts:
+    get:
+      tags: [Definition Drafts]
+      operationId: listDefinitionDrafts
+      parameters: [{$ref: "#/components/parameters/Page"}, {$ref: "#/components/parameters/PageSize"}, {$ref: "#/components/parameters/Cursor"}]
+      responses:
+        "200": {$ref: "#/components/responses/DefinitionDraftList"}
+        default: {$ref: "#/components/responses/Error"}
+    post:
+      tags: [Definition Drafts]
+      operationId: createDefinitionDraft
+      x-audit: true
+      parameters: [{$ref: "#/components/parameters/IdempotencyKey"}]
+      requestBody: {$ref: "#/components/requestBodies/DefinitionDraftWrite"}
+      responses:
+        "201": {$ref: "#/components/responses/DefinitionDraftCreated"}
+        default: {$ref: "#/components/responses/Error"}
+  /definition-drafts/{id}:
+    parameters: [{$ref: "#/components/parameters/ResourceId"}]
+    get:
+      tags: [Definition Drafts]
+      operationId: getDefinitionDraft
+      responses:
+        "200": {$ref: "#/components/responses/DefinitionDraft"}
+        default: {$ref: "#/components/responses/Error"}
+    patch:
+      tags: [Definition Drafts]
+      operationId: updateDefinitionDraft
+      x-audit: true
+      parameters: [{$ref: "#/components/parameters/OptionalIdempotencyKey"}, {$ref: "#/components/parameters/IfMatch"}]
+      requestBody: {$ref: "#/components/requestBodies/DefinitionDraftWrite"}
+      responses:
+        "200": {$ref: "#/components/responses/DefinitionDraft"}
+        default: {$ref: "#/components/responses/Error"}
+
+  /examples:
+    get:
+      tags: [Examples]
+      operationId: listExamples
+      parameters: [{$ref: "#/components/parameters/Page"}, {$ref: "#/components/parameters/PageSize"}, {$ref: "#/components/parameters/Cursor"}]
+      responses:
+        "200": {$ref: "#/components/responses/ExampleList"}
+        default: {$ref: "#/components/responses/Error"}
+  /examples/{id}:
+    parameters: [{$ref: "#/components/parameters/ResourceId"}]
+    get:
+      tags: [Examples]
+      operationId: getExample
+      responses:
+        "200": {$ref: "#/components/responses/Example"}
+        default: {$ref: "#/components/responses/Error"}
+    patch:
+      tags: [Examples]
+      operationId: updateExample
+      x-audit: true
+      parameters: [{$ref: "#/components/parameters/OptionalIdempotencyKey"}, {$ref: "#/components/parameters/IfMatch"}]
+      requestBody: {$ref: "#/components/requestBodies/ExampleWrite"}
+      responses:
+        "200": {$ref: "#/components/responses/Example"}
+        default: {$ref: "#/components/responses/Error"}
+
+  /review-tasks:
+    get:
+      tags: [Review Tasks]
+      operationId: listReviewTasks
+      parameters: [{$ref: "#/components/parameters/Page"}, {$ref: "#/components/parameters/PageSize"}, {$ref: "#/components/parameters/Cursor"}]
+      responses:
+        "200": {$ref: "#/components/responses/ReviewTaskList"}
+        default: {$ref: "#/components/responses/Error"}
+    post:
+      tags: [Review Tasks]
+      operationId: createReviewTask
+      x-audit: true
+      parameters: [{$ref: "#/components/parameters/IdempotencyKey"}]
+      requestBody: {$ref: "#/components/requestBodies/ReviewTaskWrite"}
+      responses:
+        "201": {$ref: "#/components/responses/ReviewTaskCreated"}
+        default: {$ref: "#/components/responses/Error"}
+  /review-tasks/{id}:
+    parameters: [{$ref: "#/components/parameters/ResourceId"}]
+    get:
+      tags: [Review Tasks]
+      operationId: getReviewTask
+      responses:
+        "200": {$ref: "#/components/responses/ReviewTask"}
+        default: {$ref: "#/components/responses/Error"}
+    patch:
+      tags: [Review Tasks]
+      operationId: updateReviewTask
+      x-audit: true
+      parameters: [{$ref: "#/components/parameters/OptionalIdempotencyKey"}, {$ref: "#/components/parameters/IfMatch"}]
+      requestBody: {$ref: "#/components/requestBodies/ReviewTaskWrite"}
+      responses:
+        "200": {$ref: "#/components/responses/ReviewTask"}
+        default: {$ref: "#/components/responses/Error"}
+
+  /reviews:
+    get:
+      tags: [Reviews]
+      operationId: listReviews
+      parameters: [{$ref: "#/components/parameters/Page"}, {$ref: "#/components/parameters/PageSize"}, {$ref: "#/components/parameters/Cursor"}]
+      responses:
+        "200": {$ref: "#/components/responses/ReviewDecisionList"}
+        default: {$ref: "#/components/responses/Error"}
+    post:
+      tags: [Reviews]
+      operationId: createReview
+      x-audit: true
+      parameters: [{$ref: "#/components/parameters/IdempotencyKey"}]
+      requestBody: {$ref: "#/components/requestBodies/ReviewDecisionWrite"}
+      responses:
+        "201": {$ref: "#/components/responses/ReviewDecisionCreated"}
+        default: {$ref: "#/components/responses/Error"}
+  /reviews/{id}:
+    parameters: [{$ref: "#/components/parameters/ResourceId"}]
+    get:
+      tags: [Reviews]
+      operationId: getReview
+      responses:
+        "200": {$ref: "#/components/responses/ReviewDecision"}
+        default: {$ref: "#/components/responses/Error"}
+
+  /publications:
+    get:
+      tags: [Publications]
+      operationId: listPublications
+      parameters: [{$ref: "#/components/parameters/Page"}, {$ref: "#/components/parameters/PageSize"}, {$ref: "#/components/parameters/Cursor"}]
+      responses:
+        "200": {$ref: "#/components/responses/PublicationList"}
+        default: {$ref: "#/components/responses/Error"}
+    post:
+      tags: [Publications]
+      operationId: createPublication
+      x-audit: true
+      parameters: [{$ref: "#/components/parameters/IdempotencyKey"}]
+      requestBody: {$ref: "#/components/requestBodies/PublicationWrite"}
+      responses:
+        "201": {$ref: "#/components/responses/PublicationCreated"}
+        default: {$ref: "#/components/responses/Error"}
+  /publications/{id}:
+    parameters: [{$ref: "#/components/parameters/ResourceId"}]
+    get:
+      tags: [Publications]
+      operationId: getPublication
+      responses:
+        "200": {$ref: "#/components/responses/Publication"}
+        default: {$ref: "#/components/responses/Error"}
+
+  /editions:
+    get:
+      tags: [Editions]
+      operationId: listEditions
+      parameters: [{$ref: "#/components/parameters/Page"}, {$ref: "#/components/parameters/PageSize"}, {$ref: "#/components/parameters/Cursor"}]
+      responses:
+        "200": {$ref: "#/components/responses/EditionList"}
+        default: {$ref: "#/components/responses/Error"}
+    post:
+      tags: [Editions]
+      operationId: createEdition
+      x-audit: true
+      parameters: [{$ref: "#/components/parameters/IdempotencyKey"}]
+      requestBody: {$ref: "#/components/requestBodies/EditionWrite"}
+      responses:
+        "201": {$ref: "#/components/responses/EditionCreated"}
+        default: {$ref: "#/components/responses/Error"}
+  /editions/{id}:
+    parameters: [{$ref: "#/components/parameters/ResourceId"}]
+    get:
+      tags: [Editions]
+      operationId: getEdition
+      responses:
+        "200": {$ref: "#/components/responses/Edition"}
+        default: {$ref: "#/components/responses/Error"}
+    patch:
+      tags: [Editions]
+      operationId: updateEdition
+      x-audit: true
+      parameters: [{$ref: "#/components/parameters/OptionalIdempotencyKey"}, {$ref: "#/components/parameters/IfMatch"}]
+      requestBody: {$ref: "#/components/requestBodies/EditionWrite"}
+      responses:
+        "200": {$ref: "#/components/responses/Edition"}
+        default: {$ref: "#/components/responses/Error"}
+
+  /sync-manifests:
+    get:
+      tags: [Sync Manifests]
+      operationId: listSyncManifests
+      parameters: [{$ref: "#/components/parameters/Page"}, {$ref: "#/components/parameters/PageSize"}, {$ref: "#/components/parameters/Cursor"}]
+      responses:
+        "200": {$ref: "#/components/responses/SyncManifestList"}
+        default: {$ref: "#/components/responses/Error"}
+    post:
+      tags: [Sync Manifests]
+      operationId: createSyncManifest
+      x-audit: true
+      parameters: [{$ref: "#/components/parameters/IdempotencyKey"}]
+      requestBody: {$ref: "#/components/requestBodies/SyncManifestWrite"}
+      responses:
+        "201": {$ref: "#/components/responses/SyncManifestCreated"}
+        default: {$ref: "#/components/responses/Error"}
+  /sync-manifests/{id}:
+    parameters: [{$ref: "#/components/parameters/ResourceId"}]
+    get:
+      tags: [Sync Manifests]
+      operationId: getSyncManifest
+      responses:
+        "200": {$ref: "#/components/responses/SyncManifest"}
+        default: {$ref: "#/components/responses/Error"}
+
+  /models:
+    get:
+      tags: [Models]
+      operationId: listModels
+      parameters: [{$ref: "#/components/parameters/Page"}, {$ref: "#/components/parameters/PageSize"}, {$ref: "#/components/parameters/Cursor"}]
+      responses:
+        "200": {$ref: "#/components/responses/ModelList"}
+        default: {$ref: "#/components/responses/Error"}
+    post:
+      tags: [Models]
+      operationId: createModel
+      x-audit: true
+      parameters: [{$ref: "#/components/parameters/IdempotencyKey"}]
+      requestBody: {$ref: "#/components/requestBodies/ModelWrite"}
+      responses:
+        "201": {$ref: "#/components/responses/ModelCreated"}
+        default: {$ref: "#/components/responses/Error"}
+  /models/{id}:
+    parameters: [{$ref: "#/components/parameters/ResourceId"}]
+    get:
+      tags: [Models]
+      operationId: getModel
+      responses:
+        "200": {$ref: "#/components/responses/Model"}
+        default: {$ref: "#/components/responses/Error"}
+    patch:
+      tags: [Models]
+      operationId: updateModel
+      x-audit: true
+      parameters: [{$ref: "#/components/parameters/OptionalIdempotencyKey"}, {$ref: "#/components/parameters/IfMatch"}]
+      requestBody: {$ref: "#/components/requestBodies/ModelWrite"}
+      responses:
+        "200": {$ref: "#/components/responses/Model"}
+        default: {$ref: "#/components/responses/Error"}
+
+  /prompt-templates:
+    get:
+      tags: [Prompt Templates]
+      operationId: listPromptTemplates
+      parameters: [{$ref: "#/components/parameters/Page"}, {$ref: "#/components/parameters/PageSize"}, {$ref: "#/components/parameters/Cursor"}]
+      responses:
+        "200": {$ref: "#/components/responses/PromptTemplateList"}
+        default: {$ref: "#/components/responses/Error"}
+    post:
+      tags: [Prompt Templates]
+      operationId: createPromptTemplate
+      x-audit: true
+      parameters: [{$ref: "#/components/parameters/IdempotencyKey"}]
+      requestBody: {$ref: "#/components/requestBodies/PromptTemplateWrite"}
+      responses:
+        "201": {$ref: "#/components/responses/PromptTemplateCreated"}
+        default: {$ref: "#/components/responses/Error"}
+  /prompt-templates/{id}:
+    parameters: [{$ref: "#/components/parameters/ResourceId"}]
+    get:
+      tags: [Prompt Templates]
+      operationId: getPromptTemplate
+      responses:
+        "200": {$ref: "#/components/responses/PromptTemplate"}
+        default: {$ref: "#/components/responses/Error"}
+    patch:
+      tags: [Prompt Templates]
+      operationId: updatePromptTemplate
+      x-audit: true
+      parameters: [{$ref: "#/components/parameters/OptionalIdempotencyKey"}, {$ref: "#/components/parameters/IfMatch"}]
+      requestBody: {$ref: "#/components/requestBodies/PromptTemplateWrite"}
+      responses:
+        "200": {$ref: "#/components/responses/PromptTemplate"}
+        default: {$ref: "#/components/responses/Error"}
+
+  /audit-logs:
+    get:
+      tags: [Audit Logs]
+      operationId: listAuditLogs
+      summary: List immutable audit records (admin only)
+      x-required-role: admin
+      parameters: [{$ref: "#/components/parameters/Page"}, {$ref: "#/components/parameters/PageSize"}, {$ref: "#/components/parameters/Cursor"}]
+      responses:
+        "200": {$ref: "#/components/responses/AuditLogList"}
+        default: {$ref: "#/components/responses/Error"}
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: OIDC access token issued by Keycloak.
+  parameters:
+    Page:
+      name: page
+      in: query
+      schema: {type: integer, minimum: 1, default: 1}
+    PageSize:
+      name: page_size
+      in: query
+      schema: {type: integer, minimum: 1, maximum: 100, default: 20}
+    Cursor:
+      name: cursor
+      in: query
+      schema: {type: string}
+    ResourceId:
+      name: id
+      in: path
+      required: true
+      schema: {type: string, format: uuid}
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      schema: {type: string, minLength: 1, maxLength: 255}
+    OptionalIdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: false
+      schema: {type: string, minLength: 1, maxLength: 255}
+    IfMatch:
+      name: If-Match
+      in: header
+      required: false
+      schema: {type: string}
+  headers:
+    ETag:
+      description: Entity version identifier.
+      schema: {type: string}
+    XTraceId:
+      description: Request trace identifier.
+      schema: {type: string}
+  schemas:
+    Error:
+      type: object
+      required: [code, message, details, trace_id]
+      properties:
+        code: {type: string}
+        message: {type: string}
+        details: {type: object, additionalProperties: true}
+        trace_id: {type: string}
+    Pagination:
+      type: object
+      required: [page, page_size, total]
+      properties:
+        page: {type: integer}
+        page_size: {type: integer}
+        total: {type: integer}
+        cursor: {type: [string, "null"]}
+    Health:
+      type: object
+      required: [status]
+      properties: {status: {type: string, const: ok}}
+    User:
+      type: object
+      required: [id, email, roles]
+      properties:
+        id: {type: string, format: uuid}
+        external_id: {type: string}
+        email: {type: string, format: email}
+        roles: {type: array, items: {type: string}}
+        created_at: {type: string, format: date-time}
+        updated_at: {type: string, format: date-time}
+    Submission:
+      type: object
+      required: [id, document_id, status]
+      properties:
+        id: {type: string, format: uuid}
+        submitter_id: {type: string, format: uuid}
+        document_id: {type: string, format: uuid}
+        submission_type: {type: string}
+        status: {type: string, enum: [pending, processing, accepted, rejected]}
+        idempotency_key: {type: string}
+        created_at: {type: string, format: date-time}
+    Document:
+      type: object
+      required: [id, content_hash, language]
+      properties:
+        id: {type: string, format: uuid}
+        source_id: {type: string, format: uuid}
+        content_hash: {type: string}
+        language: {type: string, default: zh}
+        processing_version: {type: string}
+        created_at: {type: string, format: date-time}
+    CorpusCard:
+      type: object
+      required: [id, usage_instance_id, status]
+      properties:
+        id: {type: string, format: uuid}
+        usage_instance_id: {type: string, format: uuid}
+        status: {type: string, enum: [DRAFT, PROCESSING, NEEDS_VERIFICATION, VERIFIED, MATCHED, CLUSTERED, REVIEWED, ARCHIVED]}
+        quality_score: {type: number, format: float}
+        annotation: {type: object, additionalProperties: true}
+        created_at: {type: string, format: date-time}
+        updated_at: {type: string, format: date-time}
+    Headword:
+      type: object
+      required: [id, character]
+      properties:
+        id: {type: string, format: uuid}
+        character: {type: string}
+        pinyin: {type: array, items: {type: string}}
+        stroke_count: {type: integer}
+        radical: {type: string}
+    ReferenceSense:
+      type: object
+      required: [id, headword_id, gloss]
+      properties:
+        id: {type: string, format: uuid}
+        headword_id: {type: string, format: uuid}
+        source_id: {type: string, format: uuid}
+        sense_number: {type: integer}
+        pos: {type: string}
+        gloss: {type: string}
+        example_text: {type: string}
+        source_kind: {type: string, enum: [authoritative, internal_seed, user_submitted]}
+        is_authoritative: {type: boolean, default: false}
+        is_publishable: {type: boolean, default: false}
+    SenseMatch:
+      type: object
+      required: [id, corpus_card_id]
+      properties:
+        id: {type: string, format: uuid}
+        corpus_card_id: {type: string, format: uuid}
+        reference_sense_id: {type: [string, "null"], format: uuid}
+        match_score: {type: number, format: float}
+        rerank_score: {type: number, format: float}
+        is_unknown: {type: boolean, default: false}
+        match_method: {type: string}
+        model_version: {type: string}
+        feature_version: {type: string}
+    Cluster:
+      type: object
+      required: [id, cluster_run_id]
+      properties:
+        id: {type: string, format: uuid}
+        cluster_run_id: {type: string, format: uuid}
+        cluster_label: {type: integer}
+        membership_count: {type: integer}
+    SenseCandidate:
+      type: object
+      required: [id, cluster_id, headword_id]
+      properties:
+        id: {type: string, format: uuid}
+        cluster_id: {type: string, format: uuid}
+        headword_id: {type: string, format: uuid}
+        proposed_gloss: {type: string}
+        status: {type: string, enum: [proposed, under_review, accepted, rejected, merged]}
+        evidence_count: {type: integer}
+    DefinitionDraft:
+      type: object
+      required: [id, sense_candidate_id, draft_text]
+      properties:
+        id: {type: string, format: uuid}
+        sense_candidate_id: {type: string, format: uuid}
+        draft_text: {type: string}
+        evidence_ids: {type: array, items: {type: string, format: uuid}}
+        model_version: {type: string}
+        llm_model: {type: string}
+    Example:
+      type: object
+      required: [id, usage_instance_id]
+      properties:
+        id: {type: string, format: uuid}
+        usage_instance_id: {type: string, format: uuid}
+        sense_candidate_id: {type: string, format: uuid}
+        score: {type: number, format: float}
+        diversity_rank: {type: integer}
+        selected: {type: boolean}
+    ReviewTask:
+      type: object
+      required: [id, task_type, target_id, status]
+      properties:
+        id: {type: string, format: uuid}
+        task_type: {type: string, enum: [card_verify, match_review, cluster_review, candidate_review, definition_review, example_review, publication_approve]}
+        target_id: {type: string, format: uuid}
+        assignee_id: {type: [string, "null"], format: uuid}
+        status: {type: string, enum: [pending, in_progress, completed, expired]}
+    ReviewDecision:
+      type: object
+      required: [id, review_task_id, decision]
+      properties:
+        id: {type: string, format: uuid}
+        review_task_id: {type: string, format: uuid}
+        reviewer_id: {type: string, format: uuid}
+        decision: {type: string, enum: [approve, reject, split, merge, amend, abstain]}
+        notes: {type: string}
+    Publication:
+      type: object
+      required: [id, edition_id]
+      properties:
+        id: {type: string, format: uuid}
+        edition_id: {type: string, format: uuid}
+        published_by: {type: string, format: uuid}
+        change_summary: {type: string}
+        diff_snapshot: {type: object, additionalProperties: true}
+    Edition:
+      type: object
+      required: [id, headword_id, version_number, status]
+      properties:
+        id: {type: string, format: uuid}
+        headword_id: {type: string, format: uuid}
+        version_number: {type: integer}
+        status: {type: string, enum: [draft, review, published, superseded, rolled_back]}
+        content_hash: {type: string}
+        signature: {type: string}
+        published_at: {type: [string, "null"], format: date-time}
+    SyncManifest:
+      type: object
+      required: [id, edition_id, manifest_hash]
+      properties:
+        id: {type: string, format: uuid}
+        edition_id: {type: string, format: uuid}
+        manifest_hash: {type: string}
+        signature: {type: string}
+        created_at: {type: string, format: date-time}
+    Model:
+      type: object
+      required: [id, name, version, status]
+      properties:
+        id: {type: string, format: uuid}
+        name: {type: string}
+        version: {type: string}
+        model_type: {type: string, enum: [embedding, reranker, classifier, llm]}
+        status: {type: string, enum: [registered, active, retired]}
+        configuration: {type: object, additionalProperties: true}
+        created_at: {type: string, format: date-time}
+        updated_at: {type: string, format: date-time}
+    PromptTemplate:
+      type: object
+      required: [id, name, version, template]
+      properties:
+        id: {type: string, format: uuid}
+        name: {type: string}
+        version: {type: integer}
+        template: {type: string}
+        variables: {type: array, items: {type: string}}
+        active: {type: boolean, default: true}
+        created_at: {type: string, format: date-time}
+        updated_at: {type: string, format: date-time}
+    AuditLog:
+      type: object
+      required: [id, actor_id, action, table_name, record_id]
+      properties:
+        id: {type: string, format: uuid}
+        actor_id: {type: string, format: uuid}
+        action: {type: string}
+        table_name: {type: string}
+        record_id: {type: string, format: uuid}
+        old_data: {type: object, additionalProperties: true}
+        new_data: {type: object, additionalProperties: true}
+        trace_id: {type: string}
+        created_at: {type: string, format: date-time}
+    UserList: {$ref: "#/components/schemas/PaginatedUser"}
+    PaginatedUser: {allOf: [{$ref: "#/components/schemas/PaginatedBase"}, {type: object, properties: {data: {type: array, items: {$ref: "#/components/schemas/User"}}}}]}
+    SubmissionList: {allOf: [{$ref: "#/components/schemas/PaginatedBase"}, {type: object, properties: {data: {type: array, items: {$ref: "#/components/schemas/Submission"}}}}]}
+    DocumentList: {allOf: [{$ref: "#/components/schemas/PaginatedBase"}, {type: object, properties: {data: {type: array, items: {$ref: "#/components/schemas/Document"}}}}]}
+    CorpusCardList: {allOf: [{$ref: "#/components/schemas/PaginatedBase"}, {type: object, properties: {data: {type: array, items: {$ref: "#/components/schemas/CorpusCard"}}}}]}
+    HeadwordList: {allOf: [{$ref: "#/components/schemas/PaginatedBase"}, {type: object, properties: {data: {type: array, items: {$ref: "#/components/schemas/Headword"}}}}]}
+    ReferenceSenseList: {allOf: [{$ref: "#/components/schemas/PaginatedBase"}, {type: object, properties: {data: {type: array, items: {$ref: "#/components/schemas/ReferenceSense"}}}}]}
+    SenseMatchList: {allOf: [{$ref: "#/components/schemas/PaginatedBase"}, {type: object, properties: {data: {type: array, items: {$ref: "#/components/schemas/SenseMatch"}}}}]}
+    ClusterList: {allOf: [{$ref: "#/components/schemas/PaginatedBase"}, {type: object, properties: {data: {type: array, items: {$ref: "#/components/schemas/Cluster"}}}}]}
+    SenseCandidateList: {allOf: [{$ref: "#/components/schemas/PaginatedBase"}, {type: object, properties: {data: {type: array, items: {$ref: "#/components/schemas/SenseCandidate"}}}}]}
+    DefinitionDraftList: {allOf: [{$ref: "#/components/schemas/PaginatedBase"}, {type: object, properties: {data: {type: array, items: {$ref: "#/components/schemas/DefinitionDraft"}}}}]}
+    ExampleList: {allOf: [{$ref: "#/components/schemas/PaginatedBase"}, {type: object, properties: {data: {type: array, items: {$ref: "#/components/schemas/Example"}}}}]}
+    ReviewTaskList: {allOf: [{$ref: "#/components/schemas/PaginatedBase"}, {type: object, properties: {data: {type: array, items: {$ref: "#/components/schemas/ReviewTask"}}}}]}
+    ReviewDecisionList: {allOf: [{$ref: "#/components/schemas/PaginatedBase"}, {type: object, properties: {data: {type: array, items: {$ref: "#/components/schemas/ReviewDecision"}}}}]}
+    PublicationList: {allOf: [{$ref: "#/components/schemas/PaginatedBase"}, {type: object, properties: {data: {type: array, items: {$ref: "#/components/schemas/Publication"}}}}]}
+    EditionList: {allOf: [{$ref: "#/components/schemas/PaginatedBase"}, {type: object, properties: {data: {type: array, items: {$ref: "#/components/schemas/Edition"}}}}]}
+    SyncManifestList: {allOf: [{$ref: "#/components/schemas/PaginatedBase"}, {type: object, properties: {data: {type: array, items: {$ref: "#/components/schemas/SyncManifest"}}}}]}
+    ModelList: {allOf: [{$ref: "#/components/schemas/PaginatedBase"}, {type: object, properties: {data: {type: array, items: {$ref: "#/components/schemas/Model"}}}}]}
+    PromptTemplateList: {allOf: [{$ref: "#/components/schemas/PaginatedBase"}, {type: object, properties: {data: {type: array, items: {$ref: "#/components/schemas/PromptTemplate"}}}}]}
+    AuditLogList: {allOf: [{$ref: "#/components/schemas/PaginatedBase"}, {type: object, properties: {data: {type: array, items: {$ref: "#/components/schemas/AuditLog"}}}}]}
+    PaginatedBase:
+      type: object
+      required: [data, pagination]
+      properties:
+        data: {type: array, items: {}}
+        pagination: {$ref: "#/components/schemas/Pagination"}
+  requestBodies:
+    UserWrite: {$ref: "#/components/requestBodies/UserBody"}
+    UserBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/User"}}}}
+    SubmissionWrite: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/Submission"}}}}
+    DocumentWrite: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/Document"}}}}
+    CorpusCardWrite: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/CorpusCard"}}}}
+    HeadwordWrite: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/Headword"}}}}
+    ReferenceSenseWrite: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/ReferenceSense"}}}}
+    SenseMatchWrite: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/SenseMatch"}}}}
+    ClusterWrite: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/Cluster"}}}}
+    SenseCandidateWrite: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/SenseCandidate"}}}}
+    DefinitionDraftWrite: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/DefinitionDraft"}}}}
+    ExampleWrite: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/Example"}}}}
+    ReviewTaskWrite: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/ReviewTask"}}}}
+    ReviewDecisionWrite: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/ReviewDecision"}}}}
+    PublicationWrite: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/Publication"}}}}
+    EditionWrite: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/Edition"}}}}
+    SyncManifestWrite: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/SyncManifest"}}}}
+    ModelWrite: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/Model"}}}}
+    PromptTemplateWrite: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/PromptTemplate"}}}}
+  responses:
+    Error:
+      description: Request failed
+      headers: {X-Trace-Id: {$ref: "#/components/headers/XTraceId"}}
+      content: {application/json: {schema: {$ref: "#/components/schemas/Error"}}}
+    User: {$ref: "#/components/responses/UserOk"}
+    UserOk: {description: User, headers: {ETag: {$ref: "#/components/headers/ETag"}, X-Trace-Id: {$ref: "#/components/headers/XTraceId"}}, content: {application/json: {schema: {$ref: "#/components/schemas/User"}}}}
+    UserCreated: {description: User created, headers: {ETag: {$ref: "#/components/headers/ETag"}, Location: {schema: {type: string}}, X-Trace-Id: {$ref: "#/components/headers/XTraceId"}}, content: {application/json: {schema: {$ref: "#/components/schemas/User"}}}}
+    UserList: {description: Users, headers: {ETag: {$ref: "#/components/headers/ETag"}, X-Trace-Id: {$ref: "#/components/headers/XTraceId"}}, content: {application/json: {schema: {$ref: "#/components/schemas/UserList"}}}}
+    Submission: {description: Submission, headers: {ETag: {$ref: "#/components/headers/ETag"}}, content: {application/json: {schema: {$ref: "#/components/schemas/Submission"}}}}
+    SubmissionCreated: {description: Submission created, headers: {ETag: {$ref: "#/components/headers/ETag"}, Location: {schema: {type: string}}}, content: {application/json: {schema: {$ref: "#/components/schemas/Submission"}}}}
+    SubmissionList: {description: Submissions, headers: {ETag: {$ref: "#/components/headers/ETag"}}, content: {application/json: {schema: {$ref: "#/components/schemas/SubmissionList"}}}}
+    Document: {description: Document, headers: {ETag: {$ref: "#/components/headers/ETag"}}, content: {application/json: {schema: {$ref: "#/components/schemas/Document"}}}}
+    DocumentCreated: {description: Document created, headers: {ETag: {$ref: "#/components/headers/ETag"}, Location: {schema: {type: string}}}, content: {application/json: {schema: {$ref: "#/components/schemas/Document"}}}}
+    DocumentList: {description: Documents, headers: {ETag: {$ref: "#/components/headers/ETag"}}, content: {application/json: {schema: {$ref: "#/components/schemas/DocumentList"}}}}
+    CorpusCard: {description: Corpus card, headers: {ETag: {$ref: "#/components/headers/ETag"}}, content: {application/json: {schema: {$ref: "#/components/schemas/CorpusCard"}}}}
+    CorpusCardCreated: {description: Corpus card created, headers: {ETag: {$ref: "#/components/headers/ETag"}, Location: {schema: {type: string}}}, content: {application/json: {schema: {$ref: "#/components/schemas/CorpusCard"}}}}
+    CorpusCardList: {description: Corpus cards, headers: {ETag: {$ref: "#/components/headers/ETag"}}, content: {application/json: {schema: {$ref: "#/components/schemas/CorpusCardList"}}}}
+    Headword: {description: Headword, headers: {ETag: {$ref: "#/components/headers/ETag"}}, content: {application/json: {schema: {$ref: "#/components/schemas/Headword"}}}}
+    HeadwordCreated: {description: Headword created, headers: {ETag: {$ref: "#/components/headers/ETag"}, Location: {schema: {type: string}}}, content: {application/json: {schema: {$ref: "#/components/schemas/Headword"}}}}
+    HeadwordList: {description: Headwords, headers: {ETag: {$ref: "#/components/headers/ETag"}}, content: {application/json: {schema: {$ref: "#/components/schemas/HeadwordList"}}}}
+    ReferenceSense: {description: Reference sense, headers: {ETag: {$ref: "#/components/headers/ETag"}}, content: {application/json: {schema: {$ref: "#/components/schemas/ReferenceSense"}}}}
+    ReferenceSenseCreated: {description: Reference sense created, headers: {ETag: {$ref: "#/components/headers/ETag"}, Location: {schema: {type: string}}}, content: {application/json: {schema: {$ref: "#/components/schemas/ReferenceSense"}}}}
+    ReferenceSenseList: {description: Reference senses, headers: {ETag: {$ref: "#/components/headers/ETag"}}, content: {application/json: {schema: {$ref: "#/components/schemas/ReferenceSenseList"}}}}
+    SenseMatch: {description: Sense match, headers: {ETag: {$ref: "#/components/headers/ETag"}}, content: {application/json: {schema: {$ref: "#/components/schemas/SenseMatch"}}}}
+    SenseMatchCreated: {description: Sense match created, headers: {ETag: {$ref: "#/components/headers/ETag"}, Location: {schema: {type: string}}}, content: {application/json: {schema: {$ref: "#/components/schemas/SenseMatch"}}}}
+    SenseMatchList: {description: Sense matches, headers: {ETag: {$ref: "#/components/headers/ETag"}}, content: {application/json: {schema: {$ref: "#/components/schemas/SenseMatchList"}}}}
+    Cluster: {description: Cluster, headers: {ETag: {$ref: "#/components/headers/ETag"}}, content: {application/json: {schema: {$ref: "#/components/schemas/Cluster"}}}}
+    ClusterCreated: {description: Cluster created, headers: {ETag: {$ref: "#/components/headers/ETag"}, Location: {schema: {type: string}}}, content: {application/json: {schema: {$ref: "#/components/schemas/Cluster"}}}}
+    ClusterList: {description: Clusters, headers: {ETag: {$ref: "#/components/headers/ETag"}}, content: {application/json: {schema: {$ref: "#/components/schemas/ClusterList"}}}}
+    SenseCandidate: {description: Sense candidate, headers: {ETag: {$ref: "#/components/headers/ETag"}}, content: {application/json: {schema: {$ref: "#/components/schemas/SenseCandidate"}}}}
+    SenseCandidateCreated: {description: Sense candidate created, headers: {ETag: {$ref: "#/components/headers/ETag"}, Location: {schema: {type: string}}}, content: {application/json: {schema: {$ref: "#/components/schemas/SenseCandidate"}}}}
+    SenseCandidateList: {description: Sense candidates, headers: {ETag: {$ref: "#/components/headers/ETag"}}, content: {application/json: {schema: {$ref: "#/components/schemas/SenseCandidateList"}}}}
+    DefinitionDraft: {description: Definition draft, headers: {ETag: {$ref: "#/components/headers/ETag"}}, content: {application/json: {schema: {$ref: "#/components/schemas/DefinitionDraft"}}}}
+    DefinitionDraftCreated: {description: Definition draft created, headers: {ETag: {$ref: "#/components/headers/ETag"}, Location: {schema: {type: string}}}, content: {application/json: {schema: {$ref: "#/components/schemas/DefinitionDraft"}}}}
+    DefinitionDraftList: {description: Definition drafts, headers: {ETag: {$ref: "#/components/headers/ETag"}}, content: {application/json: {schema: {$ref: "#/components/schemas/DefinitionDraftList"}}}}
+    Example: {description: Example, headers: {ETag: {$ref: "#/components/headers/ETag"}}, content: {application/json: {schema: {$ref: "#/components/schemas/Example"}}}}
+    ExampleList: {description: Examples, headers: {ETag: {$ref: "#/components/headers/ETag"}}, content: {application/json: {schema: {$ref: "#/components/schemas/ExampleList"}}}}
+    ReviewTask: {description: Review task, headers: {ETag: {$ref: "#/components/headers/ETag"}}, content: {application/json: {schema: {$ref: "#/components/schemas/ReviewTask"}}}}
+    ReviewTaskCreated: {description: Review task created, headers: {ETag: {$ref: "#/components/headers/ETag"}, Location: {schema: {type: string}}}, content: {application/json: {schema: {$ref: "#/components/schemas/ReviewTask"}}}}
+    ReviewTaskList: {description: Review tasks, headers: {ETag: {$ref: "#/components/headers/ETag"}}, content: {application/json: {schema: {$ref: "#/components/schemas/ReviewTaskList"}}}}
+    ReviewDecision: {description: Review, headers: {ETag: {$ref: "#/components/headers/ETag"}}, content: {application/json: {schema: {$ref: "#/components/schemas/ReviewDecision"}}}}
+    ReviewDecisionCreated: {description: Review created, headers: {ETag: {$ref: "#/components/headers/ETag"}, Location: {schema: {type: string}}}, content: {application/json: {schema: {$ref: "#/components/schemas/ReviewDecision"}}}}
+    ReviewDecisionList: {description: Reviews, headers: {ETag: {$ref: "#/components/headers/ETag"}}, content: {application/json: {schema: {$ref: "#/components/schemas/ReviewDecisionList"}}}}
+    Publication: {description: Publication, headers: {ETag: {$ref: "#/components/headers/ETag"}}, content: {application/json: {schema: {$ref: "#/components/schemas/Publication"}}}}
+    PublicationCreated: {description: Publication created, headers: {ETag: {$ref: "#/components/headers/ETag"}, Location: {schema: {type: string}}}, content: {application/json: {schema: {$ref: "#/components/schemas/Publication"}}}}
+    PublicationList: {description: Publications, headers: {ETag: {$ref: "#/components/headers/ETag"}}, content: {application/json: {schema: {$ref: "#/components/schemas/PublicationList"}}}}
+    Edition: {description: Edition, headers: {ETag: {$ref: "#/components/headers/ETag"}}, content: {application/json: {schema: {$ref: "#/components/schemas/Edition"}}}}
+    EditionCreated: {description: Edition created, headers: {ETag: {$ref: "#/components/headers/ETag"}, Location: {schema: {type: string}}}, content: {application/json: {schema: {$ref: "#/components/schemas/Edition"}}}}
+    EditionList: {description: Editions, headers: {ETag: {$ref: "#/components/headers/ETag"}}, content: {application/json: {schema: {$ref: "#/components/schemas/EditionList"}}}}
+    SyncManifest: {description: Sync manifest, headers: {ETag: {$ref: "#/components/headers/ETag"}}, content: {application/json: {schema: {$ref: "#/components/schemas/SyncManifest"}}}}
+    SyncManifestCreated: {description: Sync manifest created, headers: {ETag: {$ref: "#/components/headers/ETag"}, Location: {schema: {type: string}}}, content: {application/json: {schema: {$ref: "#/components/schemas/SyncManifest"}}}}
+    SyncManifestList: {description: Sync manifests, headers: {ETag: {$ref: "#/components/headers/ETag"}}, content: {application/json: {schema: {$ref: "#/components/schemas/SyncManifestList"}}}}
+    Model: {description: Model, headers: {ETag: {$ref: "#/components/headers/ETag"}}, content: {application/json: {schema: {$ref: "#/components/schemas/Model"}}}}
+    ModelCreated: {description: Model created, headers: {ETag: {$ref: "#/components/headers/ETag"}, Location: {schema: {type: string}}}, content: {application/json: {schema: {$ref: "#/components/schemas/Model"}}}}
+    ModelList: {description: Models, headers: {ETag: {$ref: "#/components/headers/ETag"}}, content: {application/json: {schema: {$ref: "#/components/schemas/ModelList"}}}}
+    PromptTemplate: {description: Prompt template, headers: {ETag: {$ref: "#/components/headers/ETag"}}, content: {application/json: {schema: {$ref: "#/components/schemas/PromptTemplate"}}}}
+    PromptTemplateCreated: {description: Prompt template created, headers: {ETag: {$ref: "#/components/headers/ETag"}, Location: {schema: {type: string}}}, content: {application/json: {schema: {$ref: "#/components/schemas/PromptTemplate"}}}}
+    PromptTemplateList: {description: Prompt templates, headers: {ETag: {$ref: "#/components/headers/ETag"}}, content: {application/json: {schema: {$ref: "#/components/schemas/PromptTemplateList"}}}}
+    AuditLogList: {description: Audit logs, headers: {ETag: {$ref: "#/components/headers/ETag"}}, content: {application/json: {schema: {$ref: "#/components/schemas/AuditLogList"}}}}

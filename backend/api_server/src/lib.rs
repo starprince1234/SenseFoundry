@@ -1,5 +1,22 @@
-// api_server — SenseFoundry Axum entry point
-// Wires all module routers and starts the server.
+use axum::{routing::get, Router};
+use kernel::EventBus;
+
+#[derive(Clone)]
+pub struct AppState {
+    pub pool: (),
+    pub event_bus: EventBus,
+}
+
+pub fn app() -> Router<AppState> {
+    let state = AppState {
+        pool: (),
+        event_bus: EventBus::new(16),
+    };
+
+    Router::new()
+        .route("/api/v1/health", get(|| async { "ok" }))
+        .with_state(state)
+}
 
 #[cfg(test)]
 mod tests;
