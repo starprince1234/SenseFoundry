@@ -1,0 +1,9 @@
+F4 fallback corpus expansion verification
+
+corpus-tools/data/fallback/da.jsonl: 200 lines
+corpus-tools/data/fallback/kai.jsonl: 200 lines
+corpus-tools/data/fallback/fa.jsonl: 200 lines
+corpus-tools/data/fallback/shang.jsonl: 200 lines
+corpus-tools/data/fallback/xia.jsonl: 200 lines
+
+Checks: JSON parse PASS; IDs 001-200 continuous; target_char matches; target character appears in every text; texts unique within each file; metadata fields valid.
