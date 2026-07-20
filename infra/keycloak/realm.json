@@ -1,16 +1,6 @@
 {
   "realm": "sensefoundry",
   "enabled": true,
-  "clients": [
-    {
-      "clientId": "backend",
-      "enabled": true,
-      "clientAuthenticatorType": "client-secret",
-      "secret": "changeme",
-      "directAccessGrantsEnabled": true,
-      "publicClient": false
-    }
-  ],
   "roles": {
     "realm": [
       {"name": "user"},
@@ -23,7 +13,7 @@
       {"name": "data_governance"},
       {"name": "legal"},
       {"name": "security_admin"},
-      {"name": "publish_admin"},
+      {"name": "publication_manager"},
       {"name": "ops"},
       {"name": "project_lead"}
     ]
@@ -31,15 +21,41 @@
   "users": [
     {
       "username": "test-editor",
+      "email": "editor@test.local",
       "enabled": true,
-      "credentials": [{"type": "password", "value": "changeme", "temporary": false}],
-      "realmRoles": ["editor"]
+      "credentials": [{"type": "password", "value": "Test123!", "temporary": false}],
+      "realmRoles": ["editor", "user"]
     },
     {
       "username": "test-admin",
+      "email": "admin@test.local",
       "enabled": true,
-      "credentials": [{"type": "password", "value": "changeme", "temporary": false}],
-      "realmRoles": ["project_lead", "publish_admin"]
+      "credentials": [{"type": "password", "value": "Test123!", "temporary": false}],
+      "realmRoles": [
+        "project_lead",
+        "corpus_admin",
+        "security_admin",
+        "publication_manager",
+        "user"
+      ]
+    },
+    {
+      "username": "test-linguist",
+      "email": "linguist@test.local",
+      "enabled": true,
+      "credentials": [{"type": "password", "value": "Test123!", "temporary": false}],
+      "realmRoles": ["linguist", "user"]
+    }
+  ],
+  "clients": [
+    {
+      "clientId": "backend",
+      "enabled": true,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "changeme",
+      "directAccessGrantsEnabled": true,
+      "publicClient": false,
+      "redirectUris": ["http://localhost:5173/*"]
     }
   ]
 }
