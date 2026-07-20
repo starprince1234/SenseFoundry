@@ -1,0 +1,16 @@
+Task 8: Identity module rebuild
+Date: 2026-07-20
+
+Implemented:
+- backend/identity/src/oidc.rs: RS256 JWT validation against fetched Keycloak JWKS, issuer and expiry validation.
+- backend/identity/src/rbac.rs: 13-role enum, string mapping, permission matrix, and role elevation checks.
+- backend/identity/src/middleware.rs: bearer-token AuthUser FromRequestParts extractor.
+- backend/identity/src/routes.rs: /auth/me, /users, and /users/:id role-protected handlers backed by PostgreSQL.
+- backend/identity/src/tests/mod.rs: mock-RS256 JWT, expiry, missing bearer, all-role mapping, and RBAC denial tests.
+- infra/keycloak/realm.json: all 13 realm roles plus editor, admin, and linguist test users.
+
+Static verification:
+- Searched backend/identity/src for unwrap()/expect(): production paths contain none; matches are test-only assertions and fixtures.
+- Checked changed Rust files with lsp_diagnostics: unavailable because rust-analyzer is not installed.
+- Checked cargo/rustfmt availability: unavailable because cargo and rustfmt are not on PATH.
+- Therefore cargo fmt, cargo test, cargo check, and cargo build could not be executed in this environment.
