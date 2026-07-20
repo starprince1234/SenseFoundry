@@ -52,10 +52,22 @@
       "clientId": "backend",
       "enabled": true,
       "clientAuthenticatorType": "client-secret",
-      "secret": "changeme",
+      "secret": "${KEYCLOAK_CLIENT_SECRET}",
       "directAccessGrantsEnabled": true,
       "publicClient": false,
-      "redirectUris": ["http://localhost:5173/*"]
+      "redirectUris": ["http://localhost:5173/*", "http://192.168.137.1:5173/*"]
+    },
+    {
+      "clientId": "frontend",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "redirectUris": ["http://localhost:5173/*", "http://192.168.137.1:5173/*"],
+      "webOrigins": ["http://localhost:5173", "http://192.168.137.1:5173"],
+      "attributes": {
+        "pkce.code.challenge.method": "S256"
+      }
     }
   ]
 }

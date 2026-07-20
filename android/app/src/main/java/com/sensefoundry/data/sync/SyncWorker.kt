@@ -3,15 +3,25 @@ package com.sensefoundry.data.sync
 import android.content.Context
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
+import androidx.room.withTransaction
 import com.sensefoundry.data.db.*
+import com.sensefoundry.BuildConfig
+import android.util.Base64
+import java.nio.charset.StandardCharsets
+import java.security.KeyFactory
 import java.security.MessageDigest
+import java.security.Signature
+import java.security.spec.X509EncodedKeySpec
 import kotlinx.serialization.json.*
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import java.io.IOException
+
+private class SyncIntegrityException(message: String) : IllegalStateException(message)
 
 class SyncWorker(context: Context, params: WorkerParameters) : CoroutineWorker(context, params) {
     private val client = OkHttpClient()
-    override suspend fun doWork(): Result = runCatching {
+    override suspend fun doWork(): Result = try {
         val baseUrl = inputData.getString("apiUrl") ?: error("apiUrl is required")
         val token = applicationContext.getSharedPreferences("sync", Context.MODE_PRIVATE).getLong("token", 0)
         val manifest = getJson("$baseUrl/sync-manifests/latest/delta?last_sync_token=$token")
@@ -22,8 +32,12 @@ class SyncWorker(context: Context, params: WorkerParameters) : CoroutineWorker(c
                 val entry = item.jsonObject; val id = entry.required("edition_id"); val expectedHash = entry.required("content_hash"); val expectedSignature = entry.required("signature")
                 val deltaBytes = getBytes("$baseUrl/editions/$id/delta")
                 val actualHash = sha256(deltaBytes)
-                // The server signature is the signed SHA-256 digest carried by the authenticated manifest.
-                if (actualHash != expectedHash || expectedSignature != actualHash) error("signature mismatch for edition $id")
+                if (actualHash != expectedHash) {
+                    throw SyncIntegrityException("content hash mismatch for edition $id")
+                }
+                if (!verifySignature(actualHash, expectedSignature)) {
+                    throw SyncIntegrityException("signature mismatch for edition $id")
+                }
                 val delta = Json.parseToJsonElement(deltaBytes.decodeToString()).jsonObject
                 val edition = Edition(id, delta.required("headword"), delta["version_number"]!!.jsonPrimitive.int, actualHash, expectedSignature)
                 val senses = delta["senses"]!!.jsonArray.map { sense -> sense.jsonObject.let { Sense(it.required("id"), id, edition.headword, it.required("pos"), it.required("definition")) } }
@@ -32,10 +46,30 @@ class SyncWorker(context: Context, params: WorkerParameters) : CoroutineWorker(c
             }
         }
         applicationContext.getSharedPreferences("sync", Context.MODE_PRIVATE).edit().putLong("token", manifest["sync_token"]!!.jsonPrimitive.long).putLong("lastSync", System.currentTimeMillis()).apply()
-    }.fold(onSuccess = { Result.success() }, onFailure = { Result.failure() })
+        Result.success()
+    } catch (_: SyncIntegrityException) {
+        Result.failure()
+    } catch (_: IOException) {
+        Result.retry()
+    }
 
     private fun getJson(url: String) = Json.parseToJsonElement(getBytes(url).decodeToString()).jsonObject
     private fun getBytes(url: String): ByteArray = client.newCall(Request.Builder().url(url).build()).execute().use { response -> if (!response.isSuccessful) error("HTTP ${response.code}"); response.body?.bytes() ?: error("empty response") }
     private fun sha256(bytes: ByteArray) = MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") { "%02x".format(it) }
+    private fun verifySignature(contentHash: String, encodedSignature: String): Boolean {
+        val publicKeyBytes = Base64.decode(
+            BuildConfig.SYNC_SIGNING_PUBLIC_KEY
+                .replace("-----BEGIN PUBLIC KEY-----", "")
+                .replace("-----END PUBLIC KEY-----", "")
+                .replace("\\s".toRegex(), ""),
+            Base64.DEFAULT,
+        )
+        val publicKey = KeyFactory.getInstance("EC").generatePublic(X509EncodedKeySpec(publicKeyBytes))
+        return Signature.getInstance("SHA256withECDSA").run {
+            initVerify(publicKey)
+            update(contentHash.toByteArray(StandardCharsets.UTF_8))
+            verify(Base64.decode(encodedSignature, Base64.DEFAULT))
+        }
+    }
     private fun JsonObject.required(name: String) = this[name]?.jsonPrimitive?.content ?: error("missing $name")
 }

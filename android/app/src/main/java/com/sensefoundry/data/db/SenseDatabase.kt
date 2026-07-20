@@ -10,6 +10,8 @@ import androidx.room.*
 @Dao
 interface SenseDao {
     @Query("SELECT * FROM Sense WHERE headword LIKE '%' || :query || '%' ORDER BY headword") suspend fun search(query: String): List<Sense>
+    @Query("SELECT * FROM Sense WHERE id = :id LIMIT 1") suspend fun getSense(id: String): Sense?
+    @Query("SELECT * FROM Example WHERE senseId = :senseId ORDER BY rank DESC") suspend fun getExamples(senseId: String): List<Example>
     @Transaction suspend fun replaceEdition(edition: Edition, senses: List<Sense>, examples: List<Example>) { deleteExamples(edition.id); deleteSenses(edition.id); insertEdition(edition); insertSenses(senses); insertExamples(examples) }
     @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun insertEdition(edition: Edition)
     @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun insertSenses(senses: List<Sense>)

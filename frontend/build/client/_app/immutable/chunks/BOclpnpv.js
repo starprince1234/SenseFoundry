@@ -1,1 +1,0 @@
-import{e as a,g as s}from"./DIxdD-Fw.js";async function n(t,o){const e=await fetch(`${a.PUBLIC_API_URL??"http://localhost:8080"}${t}`,{...o,headers:{"Content-Type":"application/json",...s()?{Authorization:`Bearer ${s()?.accessToken}`}:{},...o?.headers}});if(!e.ok)throw new Error(`API request failed: ${e.status}`);return e.json()}export{n as a};

@@ -1,5 +1,0 @@
-Task 26: LLM Gateway
-POST /draft-definition validates non-empty evidence and sends only requested evidence to the constrained prompt.
-Response reports all request evidence_ids as evidence_ids_used.
-GET /health checks key configuration and endpoint reachability.
-Verification: python -m pytest llm-gateway/tests/test_gateway.py (2 passed); Python diagnostics clean.

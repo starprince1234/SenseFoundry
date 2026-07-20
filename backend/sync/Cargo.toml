@@ -6,5 +6,6 @@ edition = "2021"
 [dependencies]
 axum.workspace = true
 chrono.workspace = true
+publication = { path = "../publication" }
 serde.workspace = true
 uuid.workspace = true

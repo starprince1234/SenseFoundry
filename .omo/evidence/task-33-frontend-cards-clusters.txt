@@ -1,5 +1,0 @@
-Task 33: Frontend Cards and Clusters
-Cards page loads configurable PUBLIC_API_URL, supports status filtering, pagination, and target span display.
-Clusters page loads by headword and displays member count plus stability meter.
-Authenticated API helper attaches the session JWT.
-Verification: npm run check passed with 0 errors and 0 warnings.

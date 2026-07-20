@@ -1,14 +1,31 @@
+# Doppler & Env Security
+.doppler.yaml
+.env
+.env.*
+!.env.example
+!.env.*.example
+
 target/
 **/target/
-.env
 __pycache__/
 .pytest_cache/
 .ruff_cache/
 .mypy_cache/
 node_modules/
 dist/
+build/
 .svelte-kit/
 venv/
 .venv/
 .omo/
 .serena/
+
+# Android / Gradle
+.gradle/
+**/.gradle/
+**/build/
+local.properties
+*.apk
+*.aab
+.idea/
+*.iml

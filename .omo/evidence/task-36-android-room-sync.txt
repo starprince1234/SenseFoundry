@@ -1,5 +1,0 @@
-Task 36: Android Offline Database and Sync
-Room database defines Edition, Sense, and Example entities with DAO replacement transaction.
-SyncWorker fetches manifest delta, downloads changed editions, verifies SHA-256 content hash/signature before parsing, then updates Room transactionally.
-Any hash/signature mismatch throws before transaction commit, so local data is not updated.
-Verification unavailable: no Gradle wrapper or system Gradle is installed.

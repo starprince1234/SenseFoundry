@@ -1,15 +1,16 @@
 services:
   postgres:
-    image: ankane/pgvector:latest
+    image: pgvector/pgvector:pg16
     environment:
       POSTGRES_USER: sensefoundry
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be injected by Doppler}
       POSTGRES_DB: sensefoundry
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./infra/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./infra/postgres/init.sql:/docker-entrypoint-initdb.d/00-init.sql:ro
+      - ./migrations:/docker-entrypoint-initdb.d/migrations:ro
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U sensefoundry"]
       interval: 10s
@@ -20,13 +21,13 @@ services:
     image: opensearchproject/opensearch:2.12.0
     environment:
       - discovery.type=single-node
-      - OPENSEARCH_INITIAL_ADMIN_PASSWORD=${OPENSEARCH_PASSWORD:-Admin_changeme1!}
+      - OPENSEARCH_INITIAL_ADMIN_PASSWORD=${OPENSEARCH_PASSWORD:?OPENSEARCH_PASSWORD must be injected by Doppler}
       - OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx1g
       - "DISABLE_SECURITY_PLUGIN=true"
     volumes:
       - opensearch_data:/usr/share/opensearch/data
     ports:
-      - "9200:9200"
+      - "127.0.0.1:9201:9200"
     healthcheck:
       test: ["CMD-SHELL", "curl -sf http://localhost:9200/_cluster/health || exit 1"]
       interval: 15s
@@ -41,13 +42,13 @@ services:
     image: minio/minio:latest
     command: server /data --console-address ":9001"
     environment:
-      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY:-minioadmin}
-      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:-changeme}
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY:?MINIO_ACCESS_KEY must be injected by Doppler}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:?MINIO_SECRET_KEY must be injected by Doppler}
     volumes:
       - minio_data:/data
     ports:
-      - "9000:9000"
-      - "9001:9001"
+      - "127.0.0.1:9000:9000"
+      - "127.0.0.1:9001:9001"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
       interval: 10s
@@ -60,13 +61,16 @@ services:
     environment:
       KC_DB: dev-mem
       KEYCLOAK_ADMIN: admin
-      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-changeme}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:?KEYCLOAK_ADMIN_PASSWORD must be injected by Doppler}
+      KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET:?KEYCLOAK_CLIENT_SECRET must be injected by Doppler}
+      KC_HEALTH_ENABLED: "true"
     volumes:
       - ./infra/keycloak:/opt/keycloak/data/import
     ports:
-      - "8180:8080"
+      - "127.0.0.1:8180:8080"
+      - "192.168.137.1:8180:8080"
     healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://localhost:8080/health/ready || exit 1"]
+      test: ["CMD-SHELL", "bash -c 'exec 3<>/dev/tcp/127.0.0.1/8080'"]
       interval: 15s
       timeout: 10s
       retries: 10
@@ -81,10 +85,15 @@ services:
       HF_ENDPOINT: ${HF_ENDPOINT:-https://huggingface.co}
       MLM_MODEL_REVISION: ${MLM_MODEL_REVISION:-main}
       RERANKER_MODEL_REVISION: ${RERANKER_MODEL_REVISION:-main}
+      MLM_MODEL_NAME: ${MLM_MODEL_NAME:-bert-base-chinese}
+      RERANKER_MODEL_NAME: ${RERANKER_MODEL_NAME:-BAAI/bge-reranker-base}
+      EMBEDDING_API_URL: ${EMBEDDING_API_URL:?EMBEDDING_API_URL must be injected by Doppler}
+      EMBEDDING_API_KEY: ${EMBEDDING_API_KEY:?EMBEDDING_API_KEY must be injected by Doppler}
+      EMBEDDING_MODEL: ${EMBEDDING_MODEL:?EMBEDDING_MODEL must be injected by Doppler}
     volumes:
       - model_cache:/models
     ports:
-      - "8000:8000"
+      - "127.0.0.1:8000:8000"
     healthcheck:
       test: ["CMD", "curl", "-sf", "http://localhost:8000/health"]
       interval: 20s
@@ -97,11 +106,11 @@ services:
       context: ./llm-gateway
       dockerfile: Dockerfile
     environment:
-      LLM_API_URL: ${LLM_API_URL}
-      LLM_API_KEY: ${LLM_API_KEY}
-      LLM_MODEL: ${LLM_MODEL:-gpt-4o-mini}
+      LLM_API_URL: ${LLM_API_URL:?LLM_API_URL must be injected by Doppler}
+      LLM_API_KEY: ${LLM_API_KEY:?LLM_API_KEY must be injected by Doppler}
+      LLM_MODEL: ${LLM_MODEL:?LLM_MODEL must be injected by Doppler}
     ports:
-      - "8001:8001"
+      - "127.0.0.1:8001:8001"
     healthcheck:
       test: ["CMD", "curl", "-sf", "http://localhost:8001/health"]
       interval: 10s
@@ -112,7 +121,20 @@ services:
     build:
       context: .
       dockerfile: backend/Dockerfile
-    env_file: .env
+    environment:
+      DATABASE_URL: ${DATABASE_URL:?DATABASE_URL must be injected by Doppler}
+      DATABASE_POOL_MAX: ${DATABASE_POOL_MAX:-20}
+      INFER_SERVICE_URL: http://inference:8000
+      OPENSEARCH_URL: http://opensearch:9200
+      MINIO_ENDPOINT: http://minio:9000
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY}
+      MINIO_BUCKET: ${MINIO_BUCKET:-sensefoundry}
+      KEYCLOAK_ISSUER: http://keycloak:8080/realms/sensefoundry
+      KEYCLOAK_JWKS_URL: http://keycloak:8080/realms/sensefoundry/protocol/openid-connect/certs
+      SYNC_SIGNING_PRIVATE_KEY: ${SYNC_SIGNING_PRIVATE_KEY:?SYNC_SIGNING_PRIVATE_KEY must be injected by Doppler}
+      APP_ENV: ${APP_ENV:-development}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
     depends_on:
       postgres:
         condition: service_healthy
@@ -125,7 +147,8 @@ services:
       inference:
         condition: service_healthy
     ports:
-      - "8080:8080"
+      - "127.0.0.1:8080:8080"
+      - "192.168.137.1:8080:8080"
     healthcheck:
       test: ["CMD", "curl", "-sf", "http://localhost:8080/api/v1/health"]
       interval: 10s
@@ -138,12 +161,17 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     ports:
-      - "5173:5173"
+      - "127.0.0.1:5173:5173"
+      - "192.168.137.1:5173:5173"
+    environment:
+      PUBLIC_API_URL: ${PUBLIC_API_URL:-http://localhost:8080/api/v1}
+      PUBLIC_KEYCLOAK_ISSUER: ${PUBLIC_KEYCLOAK_ISSUER:-http://localhost:8180/realms/sensefoundry}
+      PUBLIC_OIDC_CLIENT_ID: ${PUBLIC_OIDC_CLIENT_ID:-frontend}
     depends_on:
       backend:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-sf", "http://localhost:5173"]
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:5173"]
       interval: 10s
       timeout: 5s
       retries: 5

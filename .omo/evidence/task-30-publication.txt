@@ -1,6 +1,0 @@
-Task 30: Publication
-Edition version numbers auto-increment per headword.
-Each edition stores a JSON field diff, SHA-256 content hash, and publisher-bound signature over content_hash + edition_id + publisher_id.
-Rollback creates a new edition using previous content and records rollback_of.
-Routes: POST /publications, GET /editions, POST /editions/{id}/rollback.
-Verification unavailable: cargo and rust-analyzer are not installed in PATH.

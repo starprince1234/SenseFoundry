@@ -7,8 +7,14 @@ edition = "2021"
 axum.workspace = true
 chrono.workspace = true
 hex = "0.4"
+p256 = { version = "0.13", features = ["ecdsa", "pem", "pkcs8"] }
+base64 = "0.22"
+review = { path = "../review" }
 serde.workspace = true
 serde_json.workspace = true
 sha2 = "0.10"
 thiserror.workspace = true
 uuid.workspace = true
+
+[dev-dependencies]
+rand_core = { version = "0.6", features = ["getrandom"] }

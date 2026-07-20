@@ -1,4 +1,0 @@
-Task 34: Frontend Definitions, Examples, Publication
-Definition editor loads drafts and supporting evidence cards, permits expert amendment, and persists example accept/reject choices.
-Publication page renders JSON diff, shows 2-approval badge, requires explicit signature, and disables publish until requirements pass.
-Verification: npm run check passed with 0 errors and 0 warnings.

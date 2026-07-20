@@ -1,5 +1,0 @@
-Task 27: Definition Drafting
-DraftService gathers corpus cards by sense_candidate_id before invoking the LLM gateway.
-Stored drafts contain corpus_card IDs as evidence_ids and are retrievable by ID.
-Routes: POST /definition-drafts and GET /definition-drafts/{id}.
-Verification unavailable: cargo and rust-analyzer are not installed in PATH.

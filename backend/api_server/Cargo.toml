@@ -7,7 +7,27 @@ edition = "2021"
 axum = { workspace = true }
 tokio = { workspace = true }
 kernel = { path = "../kernel" }
+sqlx = { workspace = true }
+serde = { workspace = true }
+identity = { path = "../identity" }
+corpus_ingestion = { path = "../corpus_ingestion" }
+source_verification = { path = "../source_verification" }
+dictionary_import = { path = "../dictionary_import" }
+model_registry = { path = "../model_registry" }
+audit = { path = "../audit" }
+text_processing = { path = "../text_processing" }
+card_management = { path = "../card_management" }
+search = { path = "../search" }
+sense_matching = { path = "../sense_matching" }
+sense_discovery = { path = "../sense_discovery" }
+diachronic_analysis = { path = "../diachronic_analysis" }
+example_ranking = { path = "../example_ranking" }
+review = { path = "../review" }
+publication = { path = "../publication" }
+sync = { path = "../sync" }
 
 [dev-dependencies]
+p256 = { version = "0.13", features = ["ecdsa"] }
+rand_core = { version = "0.6", features = ["getrandom"] }
 serde_json = { workspace = true }
 tower = { version = "0.5", features = ["util"] }

@@ -28,6 +28,8 @@ class LlmGateway:
         self.api_url: str = api_url or os.getenv(
             "LLM_API_URL", "https://api.openai.com/v1/chat/completions"
         )
+        if self.api_url.rstrip("/").count("/") == 2:
+            self.api_url = f"{self.api_url.rstrip('/')}/v1/chat/completions"
 
     @staticmethod
     def build_prompt(headword: str, pos: str, evidence_texts: Sequence[str]) -> str:
@@ -42,9 +44,12 @@ class LlmGateway:
     ) -> str:
         if not self.api_key:
             raise RuntimeError("LLM_API_KEY is not configured")
+        model = os.getenv("LLM_MODEL")
+        if not model:
+            raise RuntimeError("LLM_MODEL is not configured")
         prompt = self.build_prompt(headword, pos, evidence_texts)
         payload = {
-            "model": os.getenv("LLM_MODEL", "gpt-4o-mini"),
+            "model": model,
             "messages": [{"role": "user", "content": prompt}],
             "temperature": 0,
         }

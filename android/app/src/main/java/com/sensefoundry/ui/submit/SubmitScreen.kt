@@ -13,6 +13,7 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
+import java.util.UUID
 
 @Composable
 fun SubmitScreen(apiUrl: String) {
@@ -26,6 +27,11 @@ fun SubmitScreen(apiUrl: String) {
 
 private suspend fun postSubmission(apiUrl: String, text: String): String = withContext(Dispatchers.IO) {
     val escaped = text.replace("\\", "\\\\").replace("\"", "\\\"")
-    val request = Request.Builder().url("$apiUrl/submissions").post("{\"text\":\"$escaped\"}".toRequestBody("application/json".toMediaType())).build()
+    val request = Request.Builder()
+        .url("$apiUrl/submissions")
+        .header("Idempotency-Key", UUID.randomUUID().toString())
+        .header("x-submitter-id", UUID.randomUUID().toString())
+        .post("{\"text\":\"$escaped\",\"submission_type\":\"text\"}".toRequestBody("application/json".toMediaType()))
+        .build()
     OkHttpClient().newCall(request).execute().use { response -> if (!response.isSuccessful) error("HTTP ${response.code}"); "Submission received" }
 }

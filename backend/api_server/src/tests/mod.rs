@@ -3,37 +3,43 @@ use axum::{
     http::{Request, StatusCode},
     response::IntoResponse,
 };
-use kernel::{AppError, EventBus};
+use kernel::AppError;
+use p256::ecdsa::SigningKey;
+use p256::pkcs8::{EncodePrivateKey, LineEnding};
+use rand_core::OsRng;
+use search::OpenSearchClient;
 use serde_json::Value;
+use sqlx::{postgres::PgPoolOptions, PgPool};
 use tower::ServiceExt;
 
-use crate::{app, AppState};
+use crate::app;
+
+fn test_pool() -> PgPool {
+    PgPoolOptions::new()
+        .connect_lazy("postgresql://test:test@localhost/test")
+        .expect("test database URL should parse")
+}
+
+fn test_signing_key() -> String {
+    SigningKey::random(&mut OsRng)
+        .to_pkcs8_pem(LineEnding::LF)
+        .expect("test key should encode")
+        .to_string()
+}
 
 #[tokio::test]
 async fn test_health_route_is_registered() {
-    let response = app()
+    let response = app(
+        test_pool(),
+        OpenSearchClient::new("http://localhost:9200"),
+        &test_signing_key(),
+    )
+        .expect("application should initialize")
         .oneshot(Request::get("/api/v1/health").body(Body::empty()).unwrap())
         .await
         .expect("health route should be reachable");
 
-    assert_eq!(response.status(), StatusCode::OK);
-
-    let body = to_bytes(response.into_body(), usize::MAX)
-        .await
-        .expect("health body should be readable");
-    assert_eq!(&body[..], b"ok");
-}
-
-#[test]
-fn test_app_state_fields_are_present() {
-    let state = AppState {
-        pool: (),
-        event_bus: EventBus::new(1),
-    };
-
-    let AppState { pool, event_bus } = state;
-    let _ = pool;
-    let _ = event_bus;
+    assert_eq!(response.status(), StatusCode::SERVICE_UNAVAILABLE);
 }
 
 #[tokio::test]
@@ -51,8 +57,13 @@ async fn test_error_response_format() {
     assert!(json["trace_id"].as_str().is_some());
 }
 
-#[test]
-fn test_workspace_compiles() {
-    let _ = app();
+#[tokio::test]
+async fn test_workspace_compiles() {
+    let _ = app(
+        test_pool(),
+        OpenSearchClient::new("http://localhost:9200"),
+        &test_signing_key(),
+    )
+    .expect("application should initialize");
     assert!(true);
 }

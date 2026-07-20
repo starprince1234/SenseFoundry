@@ -43,6 +43,7 @@ impl SubmissionService {
 
         let validation_error = validate_submission(request).err();
         let mut transaction = self.pool.begin().await?;
+        ensure_submitter(&mut transaction, submitter_id).await?;
         let document_id = ensure_document(&mut transaction, request, validation_error.is_some()).await?;
         let id = Uuid::new_v4();
         let status = if validation_error.is_some() {
@@ -146,6 +147,22 @@ impl SubmissionService {
     }
 }
 
+async fn ensure_submitter(
+    transaction: &mut Transaction<'_, Postgres>,
+    submitter_id: Uuid,
+) -> AppResult<()> {
+    sqlx::query(
+        "INSERT INTO users (id, external_id, roles, status) \
+         VALUES ($1, $2, '[\"contributor\"]'::jsonb, 'active') \
+         ON CONFLICT (id) DO NOTHING",
+    )
+    .bind(submitter_id)
+    .bind(format!("local-contributor:{submitter_id}"))
+    .execute(&mut **transaction)
+    .await?;
+    Ok(())
+}
+
 async fn ensure_document(
     transaction: &mut Transaction<'_, Postgres>,
     request: &CreateSubmissionRequest,
@@ -176,7 +193,7 @@ async fn ensure_document(
     sqlx::query(
         "INSERT INTO sources \
          (id, uri, source_kind, copyright_status, is_authoritative, created_at) \
-         VALUES ($1, $2, 'user_submission', 'user_submitted', FALSE, NOW())",
+         VALUES ($1, $2, 'user_submission', 'legal_review_required', FALSE, NOW())",
     )
     .bind(source_id)
     .bind(source_uri)
