@@ -51,9 +51,11 @@ dependencies = [
  "search",
  "sense_discovery",
  "sense_matching",
+ "serde_json",
  "source_verification",
  "text_processing",
  "tokio",
+ "tower 0.4.13",
 ]
 
 [[package]]
