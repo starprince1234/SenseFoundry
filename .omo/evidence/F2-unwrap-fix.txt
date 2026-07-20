@@ -1,0 +1,37 @@
+F2 Rust panic-call cleanup evidence
+====================================
+
+Scope
+-----
+Scanned all backend/**/*.rs files for unwrap(), expect(), panic!(), and the
+equivalent unreachable!() form. Test-only calls under #[cfg(test)] modules or
+tests/ remain allowed by the F2 rules.
+
+Production changes
+------------------
+backend/card_management/src/card.rs: 1 replacement
+  - serde_json::to_value(...).expect(...) -> AppResult plus AppError::Internal
+backend/card_management/src/service.rs: 2 call-site updates
+  - propagated append_annotation serialization errors with ?
+backend/sense_discovery/src/orchestrator.rs: 0 production replacements
+  - the only unwrap was in a #[test] function; changed test assertion to expect
+backend/text_processing/src/sentence_splitter.rs: 1 replacement
+  - invalid static regex initialization now returns a safe unsplit-text fallback
+
+Additional compatibility update
+-------------------------------
+backend/card_management/src/tests/mod.rs: 3 test call-site updates
+  - adapted tests to append_annotation's new AppResult return type with unwrap()
+
+Known allowed test-only matches after cleanup
+----------------------------------------------
+All remaining unwrap()/expect() matches are inside #[cfg(test)] modules or
+backend/**/src/tests/*.rs. No production unwrap(), expect(), panic!(), or
+unreachable!() calls remain.
+
+Notes
+-----
+The files named in the request as kernel/idempotency.rs, sense_matching/matcher.rs,
+and job_queue/worker.rs were scanned and already contained no unwrap(), expect(),
+panic!(), or unreachable!() calls in production code. matcher.rs already used
+map_err for JSON serialization; worker.rs already propagated dispatch errors.

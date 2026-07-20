@@ -138,7 +138,7 @@ mod tests {
     #[test]
     fn parses_pgvector_text() {
         assert_eq!(
-            parse_vector("[0.25,-1,2.5]").unwrap(),
+            parse_vector("[0.25,-1,2.5]").expect("valid pgvector test input"),
             vec![0.25, -1.0, 2.5]
         );
     }

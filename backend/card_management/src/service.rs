@@ -143,7 +143,7 @@ pub async fn update_card_status(
         before: serde_json::json!({ "status": current.status }),
         after: serde_json::json!({ "status": next }),
     };
-    let annotation = append_annotation(&current.annotation, entry);
+    let annotation = append_annotation(&current.annotation, entry)?;
 
     sqlx::query(
         r#"UPDATE corpus_cards
@@ -164,7 +164,7 @@ pub async fn annotate_card(
     entry: AnnotationEntry,
 ) -> AppResult<CorpusCard> {
     let current = get_card(pool, id).await?;
-    let annotation = append_annotation(&current.annotation, entry);
+    let annotation = append_annotation(&current.annotation, entry)?;
     sqlx::query(
         r#"UPDATE corpus_cards
            SET annotation = $2, updated_at = NOW()

@@ -1,4 +1,5 @@
 use chrono::{DateTime, Utc};
+use kernel::{AppError, AppResult};
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
 use uuid::Uuid;
@@ -66,11 +67,12 @@ pub struct AnnotationEntry {
 pub fn append_annotation(
     existing: &Option<serde_json::Value>,
     new_entry: AnnotationEntry,
-) -> serde_json::Value {
+) -> AppResult<serde_json::Value> {
     let mut history: Vec<AnnotationEntry> = existing
         .as_ref()
         .and_then(|value| serde_json::from_value(value.clone()).ok())
         .unwrap_or_default();
     history.push(new_entry);
-    serde_json::to_value(history).expect("AnnotationEntry serialization cannot fail")
+    serde_json::to_value(history)
+        .map_err(|error| AppError::Internal(anyhow::anyhow!(error)))
 }

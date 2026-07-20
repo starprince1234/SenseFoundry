@@ -23,7 +23,7 @@ fn test_annotation_history_preserved() {
         before: json!({"start": 1}),
         after: json!({"start": 2}),
     };
-    let history = append_annotation(&None, entry);
+    let history = append_annotation(&None, entry).unwrap();
     let entries: Vec<AnnotationEntry> = serde_json::from_value(history).unwrap();
     assert_eq!(entries.len(), 1);
 }
@@ -37,7 +37,7 @@ fn test_annotation_appends_not_replaces() {
         before: json!({}),
         after: json!({}),
     };
-    let first = append_annotation(&None, e1);
+    let first = append_annotation(&None, e1).unwrap();
     let e2 = AnnotationEntry {
         annotated_by: Uuid::new_v4(),
         annotated_at: Utc::now(),
@@ -45,7 +45,7 @@ fn test_annotation_appends_not_replaces() {
         before: json!({}),
         after: json!({}),
     };
-    let second = append_annotation(&Some(first), e2);
+    let second = append_annotation(&Some(first), e2).unwrap();
     let entries: Vec<AnnotationEntry> = serde_json::from_value(second).unwrap();
     assert_eq!(entries.len(), 2, "History must accumulate, not be replaced");
 }
