@@ -36,26 +36,11 @@ checksum = "330a5ed07fa54e4702c9d6c4174f74427fc0ef6e214bbd677ae50a5099946470"
 name = "api_server"
 version = "0.1.0"
 dependencies = [
- "audit",
  "axum 0.7.9",
- "card_management",
- "corpus_ingestion",
- "definition_drafting",
- "diachronic_analysis",
- "dictionary_import",
- "example_ranking",
- "identity",
- "job_queue",
  "kernel",
- "model_registry",
- "search",
- "sense_discovery",
- "sense_matching",
  "serde_json",
- "source_verification",
- "text_processing",
  "tokio",
- "tower 0.4.13",
+ "tower 0.5.3",
 ]
 
 [[package]]

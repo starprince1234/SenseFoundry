@@ -7,15 +7,13 @@ pub struct AppState {
     pub event_bus: EventBus,
 }
 
-pub fn app() -> Router<AppState> {
-    let state = AppState {
+pub fn app() -> Router {
+    let _state = AppState {
         pool: (),
         event_bus: EventBus::new(16),
     };
 
-    Router::new()
-        .route("/api/v1/health", get(|| async { "ok" }))
-        .with_state(state)
+    Router::new().route("/api/v1/health", get(|| async { "ok" }))
 }
 
 #[cfg(test)]
