@@ -53,7 +53,7 @@ class LlmGateway:
             "messages": [{"role": "user", "content": prompt}],
             "temperature": 0,
         }
-        async with httpx.AsyncClient(timeout=15) as client:
+        async with httpx.AsyncClient(timeout=60.0) as client:
             response = await client.post(
                 self.api_url,
                 headers={"Authorization": f"Bearer {self.api_key}"},

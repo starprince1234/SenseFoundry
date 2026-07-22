@@ -3,6 +3,8 @@ package com.sensefoundry.data.sync
 import android.content.Context
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
+import androidx.work.workDataOf
+import androidx.core.content.edit
 import androidx.room.withTransaction
 import com.sensefoundry.data.db.*
 import com.sensefoundry.BuildConfig
@@ -13,6 +15,7 @@ import java.security.MessageDigest
 import java.security.Signature
 import java.security.spec.X509EncodedKeySpec
 import kotlinx.serialization.json.*
+import kotlinx.coroutines.CancellationException
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.io.IOException
@@ -25,6 +28,10 @@ class SyncWorker(context: Context, params: WorkerParameters) : CoroutineWorker(c
         val baseUrl = inputData.getString("apiUrl") ?: error("apiUrl is required")
         val token = applicationContext.getSharedPreferences("sync", Context.MODE_PRIVATE).getLong("token", 0)
         val manifest = getJson("$baseUrl/sync-manifests/latest/delta?last_sync_token=$token")
+        val nextToken = requireMonotonicSyncToken(
+            currentToken = token,
+            receivedToken = manifest["sync_token"]!!.jsonPrimitive.long,
+        )
         val changed = manifest["changed_editions"]?.jsonArray.orEmpty()
         val database = SenseDatabase.get(applicationContext)
         database.withTransaction {
@@ -45,16 +52,31 @@ class SyncWorker(context: Context, params: WorkerParameters) : CoroutineWorker(c
                 database.senseDao().replaceEdition(edition, senses, examples)
             }
         }
-        applicationContext.getSharedPreferences("sync", Context.MODE_PRIVATE).edit().putLong("token", manifest["sync_token"]!!.jsonPrimitive.long).putLong("lastSync", System.currentTimeMillis()).apply()
+        applicationContext.getSharedPreferences("sync", Context.MODE_PRIVATE).edit {
+            putLong("token", nextToken)
+            putLong("lastSync", System.currentTimeMillis())
+        }
         Result.success()
+    } catch (error: CancellationException) {
+        throw error
     } catch (_: SyncIntegrityException) {
-        Result.failure()
+        Result.failure(workDataOf("reason" to "integrity"))
+    } catch (_: SyncTokenRegressionException) {
+        Result.failure(workDataOf("reason" to "version_regression"))
     } catch (_: IOException) {
         Result.retry()
+    } catch (_: Exception) {
+        Result.failure(workDataOf("reason" to "invalid_delta"))
     }
 
     private fun getJson(url: String) = Json.parseToJsonElement(getBytes(url).decodeToString()).jsonObject
-    private fun getBytes(url: String): ByteArray = client.newCall(Request.Builder().url(url).build()).execute().use { response -> if (!response.isSuccessful) error("HTTP ${response.code}"); response.body?.bytes() ?: error("empty response") }
+    private fun getBytes(url: String): ByteArray = client
+        .newCall(Request.Builder().url(url).build())
+        .execute()
+        .use { response ->
+            if (!response.isSuccessful) throw IOException("HTTP ${response.code}")
+            response.body?.bytes() ?: throw IOException("empty response")
+        }
     private fun sha256(bytes: ByteArray) = MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") { "%02x".format(it) }
     private fun verifySignature(contentHash: String, encodedSignature: String): Boolean {
         val publicKeyBytes = Base64.decode(

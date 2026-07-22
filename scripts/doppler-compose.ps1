@@ -35,6 +35,7 @@ if ($operation -notin $buildOnlyOperations) {
 
     $containerDatabaseUri = [UriBuilder]$databaseUri
     $containerDatabaseUri.Host = 'postgres'
+    $containerDatabaseUri.Port = 5432
     $env:DATABASE_URL = $containerDatabaseUri.Uri.AbsoluteUri
 
     Require-EnvironmentVariable 'KEYCLOAK_ADMIN_PASSWORD' | Out-Null
